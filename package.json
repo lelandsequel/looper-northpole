@@ -1,0 +1,37 @@
+{
+  "name": "looper-northpole",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LOOPER + NORTHPOLE — Agility front-door and 6D COSMIC build workshop. Real engines, ledger receipts, no mocks.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "tsx --test tests/*.test.ts",
+    "prioritize": "node scripts/prioritize.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.9.1",
+    "luna-engine": "file:../luna",
+    "next": "^14.2.28",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "strata-v1": "file:../strata-v1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}
