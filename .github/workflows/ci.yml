@@ -9,17 +9,26 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Clone sibling engines
+      - uses: actions/checkout@v4
+        with:
+          repository: lelandsequel/luna
+          path: _deps/luna
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: lelandsequel/strata-v1
+          path: _deps/strata-v1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Link sibling engines for file: deps
         run: |
-          git clone --depth 1 https://github.com/lelandsequel/luna.git "${GITHUB_WORKSPACE}/../luna"
-          git clone --depth 1 https://github.com/lelandsequel/strata-v1.git "${GITHUB_WORKSPACE}/../strata-v1"
+          ln -sf "$GITHUB_WORKSPACE/_deps/luna" "$GITHUB_WORKSPACE/../luna"
+          ln -sf "$GITHUB_WORKSPACE/_deps/strata-v1" "$GITHUB_WORKSPACE/../strata-v1"
 
       - uses: actions/setup-node@v4
         with:

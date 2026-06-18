@@ -28,6 +28,8 @@ npm run dev      # http://localhost:3000
 
 ### Standalone clone
 
+`luna` and `strata-v1` are **private** Chamber repos — you need GitHub access.
+
 ```bash
 git clone https://github.com/lelandsequel/looper-northpole.git
 cd looper-northpole
@@ -38,7 +40,7 @@ npm run seed
 npm run dev
 ```
 
-`package.json` uses `file:../luna` and `file:../strata-v1` — those paths must exist before `npm install`.
+`package.json` uses `file:../luna` and `file:../strata-v1` — clone siblings **before** `npm install`.
 
 ## Unlock gate
 
