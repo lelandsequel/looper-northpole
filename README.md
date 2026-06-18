@@ -86,6 +86,8 @@ After unlock, cookie `looper_unlock` grants access to `/looper` and `/north-pole
 
 GitHub Actions on push/PR to `main`: clone sibling repos → `npm ci` → seed → test → build.
 
+Because `luna` and `strata-v1` are private, add a repo secret **`CHAMBER_PAT`** (read access to both). Without it, CI skips gracefully.
+
 ## Health
 
 `GET /api/health` — no unlock required.

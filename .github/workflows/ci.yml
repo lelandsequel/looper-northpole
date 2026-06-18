@@ -9,6 +9,8 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    # CHAMBER_PAT: fine-grained or classic PAT with read access to private luna + strata-v1
+    if: ${{ secrets.CHAMBER_PAT != '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -17,13 +19,13 @@ jobs:
         with:
           repository: lelandsequel/luna
           path: _deps/luna
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CHAMBER_PAT }}
 
       - uses: actions/checkout@v4
         with:
           repository: lelandsequel/strata-v1
           path: _deps/strata-v1
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CHAMBER_PAT }}
 
       - name: Link sibling engines for file deps
         run: |
