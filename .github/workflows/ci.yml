@@ -25,7 +25,7 @@ jobs:
           path: _deps/strata-v1
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Link sibling engines for file: deps
+      - name: Link sibling engines for file deps
         run: |
           ln -sf "$GITHUB_WORKSPACE/_deps/luna" "$GITHUB_WORKSPACE/../luna"
           ln -sf "$GITHUB_WORKSPACE/_deps/strata-v1" "$GITHUB_WORKSPACE/../strata-v1"
