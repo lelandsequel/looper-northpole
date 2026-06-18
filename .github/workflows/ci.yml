@@ -13,23 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
-        with:
-          repository: lelandsequel/luna
-          path: _deps/luna
-          token: ${{ secrets.CHAMBER_PAT }}
-
-      - uses: actions/checkout@v4
-        with:
-          repository: lelandsequel/strata-v1
-          path: _deps/strata-v1
-          token: ${{ secrets.CHAMBER_PAT }}
-
-      - name: Link sibling engines for file deps
-        run: |
-          ln -sf "$GITHUB_WORKSPACE/_deps/luna" "$GITHUB_WORKSPACE/../luna"
-          ln -sf "$GITHUB_WORKSPACE/_deps/strata-v1" "$GITHUB_WORKSPACE/../strata-v1"
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"

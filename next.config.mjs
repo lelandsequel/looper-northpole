@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["luna-engine", "strata-v1"],
+  transpilePackages: [],
   experimental: {
     serverComponentsExternalPackages: ["better-sqlite3"],
   },

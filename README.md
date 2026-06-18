@@ -9,38 +9,14 @@ Agility front-door (**LOOPER**) and 6D COSMIC build workshop (**NORTHPOLE**). Re
 
 ## Quick start
 
-### Monorepo (local dev — recommended)
-
-Sibling engines live beside this repo:
-
-```
-projects/
-  luna/              → luna-engine (LUNA ledger)
-  strata-v1/         → STRATA query audit
-  looper-northpole/  ← you are here
-```
-
 ```bash
+git clone https://github.com/lelandsequel/looper-northpole.git
 cd looper-northpole
 npm run setup    # install + seed + test
 npm run dev      # http://localhost:3000
 ```
 
-### Standalone clone
-
-`luna` and `strata-v1` are **private** Chamber repos — you need GitHub access.
-
-```bash
-git clone https://github.com/lelandsequel/looper-northpole.git
-cd looper-northpole
-git clone https://github.com/lelandsequel/luna.git ../luna
-git clone https://github.com/lelandsequel/strata-v1.git ../strata-v1
-npm install
-npm run seed
-npm run dev
-```
-
-`package.json` uses `file:../luna` and `file:../strata-v1` — clone siblings **before** `npm install`.
+LUNA Witness + STRATA audit logic are **vendored in-repo** (`lib/luna/chamber/`, `lib/strata/`) — no sibling repos required.
 
 ## Unlock gate
 
@@ -80,13 +56,12 @@ After unlock, cookie `looper_unlock` grants access to `/looper` and `/north-pole
 - **6D COSMIC** (`lib/six-d/cosmic/`) — initiative → spec via LUNA-sealed run
 - **Build leg** (`lib/build-leg/`) — Pan gate REFUSE→RESOLVE→RECOMPUTE loop
 - **STRATA** (`lib/strata/`) — certified query audit on production fixture
+- **LUNA Witness** (`lib/luna/chamber/`) — BUILD_PENDING witness atoms (vendored from Chamber LUNA v2)
 - **Ledger** (`lib/store/`) — SQLite WAL; tamper-evident event chain
 
 ## CI
 
-GitHub Actions on push/PR to `main`: clone sibling repos → `npm ci` → seed → test → build.
-
-Because `luna` and `strata-v1` are private, add a repo secret **`CHAMBER_PAT`** (read access to both). Without it, CI skips gracefully.
+GitHub Actions on push/PR to `main`: `npm ci` → seed → test → build.
 
 ## Health
 

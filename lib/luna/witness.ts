@@ -1,4 +1,4 @@
-import { WitnessStore } from "luna-engine/v2/witness.mjs";
+import { WitnessStore } from "./chamber/witness.mjs";
 import { getDb } from "@/lib/store/db";
 
 export type AgentId = "toph" | "pan" | "yuffie" | "raven";
