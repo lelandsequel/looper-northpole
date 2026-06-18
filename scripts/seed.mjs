@@ -10,8 +10,17 @@ const db = new Database(path.join(dataDir, "looper-northpole.db"));
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS initiatives (id TEXT PRIMARY KEY, payload TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  CREATE TABLE IF NOT EXISTS ledger_events (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    prev TEXT,
+    sha TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 db.prepare("DELETE FROM initiatives").run();
+db.prepare("DELETE FROM ledger_events").run();
 const insert = db.prepare("INSERT INTO initiatives (id, payload) VALUES (?, ?)");
 for (const it of INITIATIVES.filter((i) => i.id !== "HL-013")) insert.run(it.id, JSON.stringify(it));
 console.log(`seeded ${INITIATIVES.length - 1} initiatives`);

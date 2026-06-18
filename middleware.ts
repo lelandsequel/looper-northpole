@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Soft gate — courtesy lock for demo sharing. Not real security.
-const GATE_COOKIE = "looper_unlock";
-const GATE_CODE = "333333";
+import { GATE_COOKIE, GATE_CODE, isUnlocked } from "@/lib/gate";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +9,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const unlocked = request.cookies.get(GATE_COOKIE)?.value === GATE_CODE;
+  const unlocked = isUnlocked(request.cookies.get(GATE_COOKIE)?.value);
   if (!unlocked && !pathname.startsWith("/unlock")) {
     const url = request.nextUrl.clone();
     url.pathname = "/unlock";

@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 
-import { getInitiative } from "@/lib/store/initiatives";
+import { prioritize } from "@/lib/agility";
+import { DEFAULT_CAPACITY } from "@/lib/agility/pipeline";
+import { listInitiatives } from "@/lib/store/initiatives";
 import { getDb } from "@/lib/store/db";
+import type { Initiative } from "@/lib/agility/types";
 import { initiativeToIntent } from "@/lib/loop/adapter";
 import { runSixDCosmic, type CosmicRun } from "@/lib/six-d/cosmic";
 import { runBuildLeg, type BuildLegResult } from "@/lib/build-leg";
@@ -15,6 +18,14 @@ import { auditQuery } from "@/lib/strata/audit";
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
+/** Funding is computed at prioritize time — not stored on the DB row. */
+function requireFundedInitiative(initiativeId: string): Initiative {
+  const result = prioritize(listInitiatives(), { capacity: DEFAULT_CAPACITY });
+  const funded = result.funded.find((it) => it.id === initiativeId);
+  if (!funded) throw new Error(`initiative not funded: ${initiativeId}`);
+  return funded;
+}
+
 export interface NorthPoleRun {
   initiativeId: string;
   cosmic: CosmicRun & { ledgerEntry?: { hash: string; seq: number } };
@@ -26,10 +37,7 @@ export interface NorthPoleRun {
 }
 
 export async function runNorthPoleSpec(initiativeId: string) {
-  const initiative = getInitiative(initiativeId);
-  if (!initiative) throw new Error(`initiative not found: ${initiativeId}`);
-  if (initiative._funding !== "FUNDED") throw new Error(`initiative not funded: ${initiativeId}`);
-
+  const initiative = requireFundedInitiative(initiativeId);
   const intent = initiativeToIntent(initiative);
   const { run, entry } = await runSixDCosmic(intent);
 
@@ -45,8 +53,7 @@ export async function runNorthPoleSpec(initiativeId: string) {
 }
 
 export async function runNorthPoleBuild(initiativeId: string): Promise<NorthPoleRun> {
-  const initiative = getInitiative(initiativeId);
-  if (!initiative) throw new Error(`initiative not found: ${initiativeId}`);
+  const initiative = requireFundedInitiative(initiativeId);
 
   const { run, entry } = await runNorthPoleSpec(initiativeId);
 

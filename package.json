@@ -9,6 +9,8 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx --test tests/*.test.ts",
+    "seed": "node scripts/seed.mjs",
+    "setup": "bash scripts/setup.sh",
     "prioritize": "node scripts/prioritize.mjs"
   },
   "dependencies": {

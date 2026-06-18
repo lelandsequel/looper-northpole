@@ -48,7 +48,8 @@ export function verifyLedger(): { ok: boolean; count: number; head: string | nul
   let prev: string | null = null;
   for (let i = 0; i < events.length; i++) {
     const e = events[i];
-    const body = JSON.stringify({ seq: e.seq, kind: e.kind, payload: e.payload, prev });
+    // Hashes use append-time index (0-based), not SQLite AUTOINCREMENT id.
+    const body = JSON.stringify({ seq: i, kind: e.kind, payload: e.payload, prev });
     if (sha(body) !== e.sha) return { ok: false, brokeAt: i, reason: "hash mismatch", count: events.length, head: null };
     if (e.prev !== prev) return { ok: false, brokeAt: i, reason: "broken link", count: events.length, head: null };
     prev = e.sha;
