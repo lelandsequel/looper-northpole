@@ -9,8 +9,6 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
-    # CHAMBER_PAT: fine-grained or classic PAT with read access to private luna + strata-v1
-    if: ${{ secrets.CHAMBER_PAT != '' }}
 
     steps:
       - uses: actions/checkout@v4
