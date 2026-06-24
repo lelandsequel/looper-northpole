@@ -1,6 +1,7 @@
 "use server";
 
 import { ensureSeeded } from "@/lib/store/ensure-seeded";
+import { toNorthPoleRunView, type NorthPoleRunView } from "@/lib/northpole/client-view";
 import {
   listFundedQueue,
   runNorthPoleBuild,
@@ -15,9 +16,14 @@ export async function getNorthPoleState() {
   return { funded };
 }
 
-export async function runBuild(initiativeId: string, opts?: NorthPoleBuildOptions) {
+/** Prefer POST /api/north-pole/build from the client — large COSMIC payloads break Flight. */
+export async function runBuild(
+  initiativeId: string,
+  opts?: NorthPoleBuildOptions,
+): Promise<NorthPoleRunView> {
   ensureSeeded();
-  return runNorthPoleBuild(initiativeId, opts);
+  const run = await runNorthPoleBuild(initiativeId, opts);
+  return toNorthPoleRunView(run);
 }
 
 export async function getInitiativeStatus(initiativeId: string) {

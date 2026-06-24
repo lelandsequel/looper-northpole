@@ -5,9 +5,10 @@ import { useEffect, useState, useTransition } from "react";
 import { FundingPill } from "@/components/FundingPill";
 import { ReceiptBar } from "@/components/ReceiptBar";
 import { LOOPER_TOUR_EVENT, type LooperTourAction } from "@/lib/tour/events";
-import { runBuild, getNorthPoleState } from "./actions";
+import type { NorthPoleRunView } from "@/lib/northpole/client-view";
+import { runBuildViaApi } from "@/lib/northpole/run-build-client";
+import { getNorthPoleState } from "./actions";
 import type { Initiative } from "@/lib/agility/types";
-import type { NorthPoleRun } from "@/lib/northpole/pipeline";
 
 export function NorthPoleDashboard({
   initial,
@@ -16,15 +17,21 @@ export function NorthPoleDashboard({
 }) {
   const [funded, setFunded] = useState(initial.funded);
   const [selected, setSelected] = useState<Initiative | null>(null);
-  const [run, setRun] = useState<NorthPoleRun | null>(null);
+  const [run, setRun] = useState<NorthPoleRunView | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   function handleBuild(id: string) {
+    setError(null);
     start(async () => {
-      const result = await runBuild(id);
-      setRun(result);
-      const refreshed = await getNorthPoleState();
-      setFunded(refreshed.funded);
+      try {
+        const result = await runBuildViaApi(id);
+        setRun(result);
+        const refreshed = await getNorthPoleState();
+        setFunded(refreshed.funded);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Build failed");
+      }
     });
   }
 
@@ -86,6 +93,12 @@ export function NorthPoleDashboard({
         </div>
       </section>
 
+      {error && (
+        <div className="rounded-lg border border-refused/40 bg-refused/10 p-4 font-mono text-sm text-refused">
+          Build error: {error}
+        </div>
+      )}
+
       {run && (
         <div data-tour="build-results" className="space-y-6">
           <Stage title="Stage 1: Spec (6D COSMIC)" tourId="spec">
@@ -99,7 +112,7 @@ export function NorthPoleDashboard({
               </div>
               <ReceiptBar label="COSMIC run hash" sha={run.cosmic.runHash} />
               <ReceiptBar label="LUNA entry" sha={run.cosmic.ledgerEntry?.hash} seq={run.cosmic.ledgerEntry?.seq} />
-              <div>VELLUM bindings: {run.cosmic.provenance?.length ?? 0} elements</div>
+              <div>VELLUM bindings: {run.cosmic.provenanceCount} elements</div>
             </div>
           </Stage>
 
@@ -114,8 +127,8 @@ export function NorthPoleDashboard({
                 <span> · green in round {run.build.roundsToGreen}</span>
               )}
             </div>
-            {run.buildPendingWitness && (
-              <ReceiptBar label="BUILD_PENDING witness" sha={run.buildPendingWitness.receipt.sha} />
+            {run.buildPendingWitnessSha && (
+              <ReceiptBar label="BUILD_PENDING witness" sha={run.buildPendingWitnessSha} />
             )}
           </Stage>
 
@@ -159,10 +172,10 @@ export function NorthPoleDashboard({
                 {run.feedback.confidenceChanged ? " (changed)" : ""}
               </div>
               <ReceiptBar label="build receipt" sha={run.feedback.buildReceipt} />
-              {run.reprioritized && (
+              {run.reprioritizedHead && (
                 <div className="mt-2">
                   Queue head after feedback:{" "}
-                  <span className="text-accent">{run.reprioritized.chainHead?.slice(0, 16)}…</span>
+                  <span className="text-accent">{run.reprioritizedHead.slice(0, 16)}…</span>
                 </div>
               )}
             </div>

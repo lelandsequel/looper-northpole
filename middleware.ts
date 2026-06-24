@@ -9,7 +9,9 @@ export function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/api/health") ||
     pathname.startsWith("/api/unlock") ||
-    pathname.startsWith("/api/build/contract")
+    pathname.startsWith("/api/build/contract") ||
+    pathname.startsWith("/api/north-pole/") ||
+    pathname.startsWith("/api/demo/")
   ) {
     return NextResponse.next();
   }
