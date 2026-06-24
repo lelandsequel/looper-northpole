@@ -8,9 +8,8 @@ import type { Initiative } from "@/lib/agility/types";
 import { initiativeToIntent } from "@/lib/loop/adapter";
 import { runSixDCosmic, type CosmicRun } from "@/lib/six-d/cosmic";
 import { runBuildLeg, type BuildLegResult } from "@/lib/build-leg";
-import { priceQuote as brokenBuild } from "@/lib/build-leg/demo/broken/priceQuote";
-import { priceQuote as fixedBuild } from "@/lib/build-leg/demo/candidate/priceQuote";
-import { STALE_DATA_STORY } from "@/lib/build-leg";
+import { resolveBuilder, type BuildBuilderKind } from "@/lib/build-leg/resolve-builder";
+import { workOrderForInitiative } from "@/lib/northpole/build-work-order";
 import { buildOutcomeToFeedback, applyBuildFeedback } from "@/lib/loop/build-feedback";
 import { intakeAndPrioritize, loadAndPrioritize } from "@/lib/agility/pipeline";
 import { emitBuildPending } from "@/lib/luna/witness";
@@ -52,8 +51,18 @@ export async function runNorthPoleSpec(initiativeId: string) {
   return { run, entry, witness };
 }
 
-export async function runNorthPoleBuild(initiativeId: string): Promise<NorthPoleRun> {
+export type NorthPoleBuildOptions = {
+  builder?: BuildBuilderKind;
+  maxRounds?: number;
+};
+
+export async function runNorthPoleBuild(
+  initiativeId: string,
+  opts: NorthPoleBuildOptions = {},
+): Promise<NorthPoleRun> {
   const initiative = requireFundedInitiative(initiativeId);
+  const builderKind = opts.builder ?? "demo";
+  const maxRounds = opts.maxRounds ?? 3;
 
   const { run, entry } = await runNorthPoleSpec(initiativeId);
 
@@ -61,14 +70,9 @@ export async function runNorthPoleBuild(initiativeId: string): Promise<NorthPole
     `SELECT well_id, SUM(oil_bbl) FROM production_daily WHERE report_date >= '2026-01-01' GROUP BY well_id`,
   );
 
-  const selfCorrecting = ({ round }: { round: number }) =>
-    round === 1 ? { priceQuote: brokenBuild } : { priceQuote: fixedBuild };
-
-  const build = await runBuildLeg(
-    { ...STALE_DATA_STORY, sourceInitiative: initiativeId, storyId: `build.${initiativeId}` },
-    selfCorrecting,
-    { maxRounds: 3 },
-  );
+  const build = await runBuildLeg(workOrderForInitiative(initiativeId), resolveBuilder(builderKind), {
+    maxRounds,
+  });
 
   getDb()
     .prepare(

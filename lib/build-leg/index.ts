@@ -20,3 +20,9 @@ export type { BuildWorkOrder, AcceptanceProbe, ProbeResult } from "./workorder";
 
 export { runBuildLeg } from "./orchestrator";
 export type { Builder, BuildBrief, BuildRound, BuildLegResult } from "./orchestrator";
+
+export { materializeCandidate } from "./materialize";
+export { demoBuilder } from "./adapters/demo-builder";
+export { apiBuilder, briefToAgentRequest } from "./adapters/agent-api";
+export { resolveBuilder, type BuildBuilderKind } from "./resolve-builder";
+export type { AgentBuildRequest, AgentBuildResponse } from "./types";

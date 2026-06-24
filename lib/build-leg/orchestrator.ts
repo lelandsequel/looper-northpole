@@ -16,7 +16,9 @@
 
 import { Ledger } from "../six-d/cosmic/luna";
 
-import { validateBuild, type BuildVerdict, type CandidateBuild, type ResolveNeed } from "./validator";
+import { materializeCandidate } from "./materialize";
+import { validateBuild, type BuildVerdict, type ResolveNeed } from "./validator";
+import type { CandidateBuild } from "./types";
 import type { BuildWorkOrder } from "./workorder";
 
 /** What a builder is handed each round: the story, and (on a retry) what to fix. */
@@ -68,7 +70,8 @@ export async function runBuildLeg(
   let finalVerdict: BuildVerdict | null = null;
 
   for (let round = 1; round <= maxRounds; round++) {
-    const build = await builder({ order, round, resolve });
+    const raw = await builder({ order, round, resolve });
+    const build = await materializeCandidate(raw);
     const verdict = validateBuild(order, build);
 
     // Seal this round into the chain (the build verdict rides the LUNA ledger).

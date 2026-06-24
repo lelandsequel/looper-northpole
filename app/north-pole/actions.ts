@@ -5,6 +5,7 @@ import {
   runNorthPoleBuild,
   getCosmicRun,
   getBuildRun,
+  type NorthPoleBuildOptions,
 } from "@/lib/northpole/pipeline";
 
 export async function getNorthPoleState() {
@@ -12,8 +13,8 @@ export async function getNorthPoleState() {
   return { funded };
 }
 
-export async function runBuild(initiativeId: string) {
-  return runNorthPoleBuild(initiativeId);
+export async function runBuild(initiativeId: string, opts?: NorthPoleBuildOptions) {
+  return runNorthPoleBuild(initiativeId, opts);
 }
 
 export async function getInitiativeStatus(initiativeId: string) {

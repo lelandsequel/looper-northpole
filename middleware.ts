@@ -5,7 +5,11 @@ import { GATE_COOKIE, GATE_CODE, isUnlocked } from "@/lib/gate";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/api/health") || pathname.startsWith("/api/unlock")) {
+  if (
+    pathname.startsWith("/api/health") ||
+    pathname.startsWith("/api/unlock") ||
+    pathname.startsWith("/api/build/contract")
+  ) {
     return NextResponse.next();
   }
 

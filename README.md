@@ -67,14 +67,33 @@ LOOPER is what you described in the room: **one door in, scored rank out, every 
 
 **The full-asshole play is half-built.** NORTHPOLE has the **gate** nobody else has (validator refuses, hands typed resolve needs, loops until green or exhausts). The **builder** slot is a demo: round 1 ships `lib/build-leg/demo/broken/priceQuote.ts`, round 2 ships the fixed version. That proves the loop — it does not prove an LLM/agent can build your Texas HELOC.
 
-To make NORTHPOLE actually build shit:
+### Codegen agent plug-in (shipped)
 
-1. Wire a real `Builder` at `lib/build-leg/orchestrator.ts` (agent writes files in a sandbox).
-2. Expand `from-spec.ts` to emit work-orders from COSMIC output (not just `STALE_DATA_STORY`).
-3. Generalize `validator.ts` beyond the pricing demo (file probes, test runs, STRATA hooks).
-4. Keep LOOPER's verification layer on anything that touches Jira (epics/stories = structured emit + refuse, not LLM freestyle).
+NORTHPOLE accepts any HTTP agent at the `Builder` seam:
 
-The moat is the **validator + receipt loop**, not the codegen commodity.
+```bash
+# Local proof without an LLM — stub agent mirrors the contract:
+export BUILD_AGENT_URL=http://localhost:3000/api/build/agent-stub
+
+curl -X POST http://localhost:3000/api/build \
+  -H 'content-type: application/json' \
+  -d '{"initiativeId":"HL-001","builder":"agent","maxRounds":3}'
+```
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/build/contract` | Agent request/response schema (no unlock) |
+| `POST /api/build/agent-stub` | Reference agent for integration tests |
+| `POST /api/build` | Full NORTHPOLE run (`builder`: `demo` \| `agent`) |
+
+Agent contract: POST JSON `BuildBrief` → `{ ok, modules: { "priceQuote.ts": "..." } }`.
+On REFUSE, NORTHPOLE re-posts with `resolve[]` from failed blocking criteria.
+
+Still to generalize beyond the HL-002 `priceQuote` demo:
+
+1. COSMIC-sourced work orders (`storyFromSpec` → probes)
+2. Multi-file repo builds + `npm test` probes
+3. LOOPER epic/story emit with verification layer
 
 ## Unlock gate (demo only)
 

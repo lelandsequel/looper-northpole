@@ -19,6 +19,9 @@ import { createHash } from "node:crypto";
 
 import type { BuildWorkOrder, ProbeResult } from "./workorder";
 import type { PriceQuoteFn } from "./demo/contract";
+import type { CandidateBuild } from "./types";
+
+export type { CandidateBuild } from "./types";
 
 export type Verdict = "NO_OBJECTION" | "HOLD" | "REFUSE";
 
@@ -49,11 +52,6 @@ export interface BuildVerdict {
   /** sha256 over the canonical verdict — the receipt that seals this gate. */
   receipt: string;
   summary: string;
-}
-
-/** A delivered build under test: any module exposing the contract's priceQuote. */
-export interface CandidateBuild {
-  priceQuote?: unknown;
 }
 
 /** Deterministic, order-stable receipt over the verdict (sans the receipt itself). */
