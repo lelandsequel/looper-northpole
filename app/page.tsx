@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { HomeLanding } from "./HomeLanding";
 
 export default function Home() {
-  redirect("/looper");
+  return <HomeLanding />;
 }

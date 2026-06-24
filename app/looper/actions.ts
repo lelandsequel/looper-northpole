@@ -1,5 +1,6 @@
 "use server";
 
+import { ensureSeeded } from "@/lib/store/ensure-seeded";
 import { cadmusGate } from "@/lib/cadmus/gate";
 import { intakeAndPrioritize, loadAndPrioritize } from "@/lib/agility/pipeline";
 import { verifyLedger, receiptsForInitiative } from "@/lib/store/ledger";
@@ -20,6 +21,7 @@ export type IntakeResult =
     };
 
 export async function submitInitiative(raw: string): Promise<IntakeResult> {
+  ensureSeeded();
   const gate = cadmusGate(raw);
   if (!gate.ok) {
     return { ok: false, refused: true, rubric: gate.rubric, errors: gate.errors };
@@ -47,6 +49,7 @@ export async function getQueue(): Promise<{
   capacity: number;
   capacityUsed: number;
 }> {
+  ensureSeeded();
   const result = loadAndPrioritize();
   return {
     queue: result.ranked.map((it) => ({

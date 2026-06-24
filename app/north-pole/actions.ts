@@ -1,5 +1,6 @@
 "use server";
 
+import { ensureSeeded } from "@/lib/store/ensure-seeded";
 import {
   listFundedQueue,
   runNorthPoleBuild,
@@ -9,11 +10,13 @@ import {
 } from "@/lib/northpole/pipeline";
 
 export async function getNorthPoleState() {
+  ensureSeeded();
   const funded = listFundedQueue();
   return { funded };
 }
 
 export async function runBuild(initiativeId: string, opts?: NorthPoleBuildOptions) {
+  ensureSeeded();
   return runNorthPoleBuild(initiativeId, opts);
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import { DEMO_PUBLIC } from "@/lib/demo";
 import { GATE_COOKIE, GATE_CODE, isUnlocked } from "@/lib/gate";
 
 export function middleware(request: NextRequest) {
@@ -10,6 +11,10 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api/unlock") ||
     pathname.startsWith("/api/build/contract")
   ) {
+    return NextResponse.next();
+  }
+
+  if (DEMO_PUBLIC) {
     return NextResponse.next();
   }
 

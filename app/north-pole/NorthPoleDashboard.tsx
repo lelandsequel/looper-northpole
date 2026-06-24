@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { FundingPill } from "@/components/FundingPill";
 import { ReceiptBar } from "@/components/ReceiptBar";
+import { LOOPER_TOUR_EVENT, type LooperTourAction } from "@/lib/tour/events";
 import { runBuild, getNorthPoleState } from "./actions";
 import type { Initiative } from "@/lib/agility/types";
 import type { NorthPoleRun } from "@/lib/northpole/pipeline";
@@ -27,16 +28,31 @@ export function NorthPoleDashboard({
     });
   }
 
+  useEffect(() => {
+    function onTour(e: Event) {
+      const action = (e as CustomEvent<LooperTourAction>).detail;
+      if (action.type === "run-build") {
+        const target = funded[0];
+        if (target) {
+          setSelected(target);
+          handleBuild(target.id);
+        }
+      }
+    }
+    window.addEventListener(LOOPER_TOUR_EVENT, onTour);
+    return () => window.removeEventListener(LOOPER_TOUR_EVENT, onTour);
+  }, [funded]);
+
   return (
     <div className="space-y-6">
-      <header>
+      <header data-tour="northpole-header">
         <h1 className="text-2xl font-semibold">NORTHPOLE</h1>
         <p className="mt-1 text-sm text-muted">
           6D COSMIC build workshop — spec → gate → detect/deliver → feedback to Agility.
         </p>
       </header>
 
-      <section>
+      <section data-tour="northpole-funded">
         <h2 className="font-mono text-xs uppercase text-muted">Funded queue (from LOOPER ledger)</h2>
         <div className="mt-2 space-y-2">
           {funded.length === 0 && (
@@ -52,7 +68,9 @@ export function NorthPoleDashboard({
               <div className="flex items-center justify-between">
                 <button type="button" onClick={() => setSelected(item)} className="text-left">
                   <div className="font-medium">{item.title}</div>
-                  <div className="font-mono text-xs text-muted">{item.id} · score {item._score}</div>
+                  <div className="font-mono text-xs text-muted">
+                    {item.id} · score {item._score}
+                  </div>
                 </button>
                 <button
                   type="button"
@@ -69,8 +87,8 @@ export function NorthPoleDashboard({
       </section>
 
       {run && (
-        <>
-          <Stage title="Stage 1: Spec (6D COSMIC)" data-tour="spec">
+        <div data-tour="build-results" className="space-y-6">
+          <Stage title="Stage 1: Spec (6D COSMIC)" tourId="spec">
             <div className="space-y-2 font-mono text-xs text-muted">
               <div>
                 AURORA summary:{" "}
@@ -85,16 +103,23 @@ export function NorthPoleDashboard({
             </div>
           </Stage>
 
-          <Stage title="Stage 2: Build (Chamber — BUILD_PENDING stub)" data-tour="build">
+          <Stage title="Stage 2: Build (demo codegen → materialize)" tourId="build">
             <div className="text-sm text-muted">
-              Agent layer stubbed — emits BUILD_PENDING Witness, no live agent claims yet.
+              Demo builder ships code; round 1 fails probes, round 2 self-corrects. Agent seam ready via{" "}
+              <span className="font-mono text-ink">BUILD_AGENT_URL</span>.
+            </div>
+            <div className="mt-2 font-mono text-xs text-muted">
+              {run.build.rounds.length} round(s) · status {run.build.status}
+              {run.build.roundsToGreen != null && (
+                <span> · green in round {run.build.roundsToGreen}</span>
+              )}
             </div>
             {run.buildPendingWitness && (
               <ReceiptBar label="BUILD_PENDING witness" sha={run.buildPendingWitness.receipt.sha} />
             )}
           </Stage>
 
-          <Stage title="Stage 3: Pan Gate" data-tour="gate">
+          <Stage title="Stage 3: Pan Gate" tourId="gate">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm">status:</span>
@@ -105,14 +130,15 @@ export function NorthPoleDashboard({
               </div>
               {run.build.rounds.map((r) => (
                 <div key={r.round} className="rounded border border-border p-2 font-mono text-xs">
-                  round {r.round}: {r.verdict.verdict} — passed {r.verdict.passed}/{r.verdict.passed + r.verdict.failed}
+                  round {r.round}: {r.verdict.verdict} — passed {r.verdict.passed}/
+                  {r.verdict.passed + r.verdict.failed}
                   <ReceiptBar label="round receipt" sha={r.ledgerHash} seq={r.ledgerSeq} />
                 </div>
               ))}
             </div>
           </Stage>
 
-          <Stage title="Stage 4: Detect/Deliver + STRATA audit" data-tour="detect">
+          <Stage title="Stage 4: Detect/Deliver + STRATA audit" tourId="detect">
             <div className="font-mono text-xs text-muted">
               <div>STRATA query audit: {run.strataAudit.refused ? "REFUSED" : "certified"}</div>
               {!run.strataAudit.refused && (
@@ -125,7 +151,7 @@ export function NorthPoleDashboard({
             </div>
           </Stage>
 
-          <Stage title="Stage 5: Feedback → LOOPER re-prioritize" data-tour="feedback">
+          <Stage title="Stage 5: Feedback → LOOPER re-prioritize" tourId="feedback">
             <div className="font-mono text-xs text-muted">
               <div>
                 deliveryConfidence: {run.feedback.priorDeliveryConfidence} →{" "}
@@ -141,15 +167,23 @@ export function NorthPoleDashboard({
               )}
             </div>
           </Stage>
-        </>
+        </div>
       )}
     </div>
   );
 }
 
-function Stage({ title, children }: { title: string; children: React.ReactNode }) {
+function Stage({
+  title,
+  tourId,
+  children,
+}: {
+  title: string;
+  tourId?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="rounded-lg border border-border p-4">
+    <section data-tour={tourId} className="rounded-lg border border-border p-4">
       <h2 className="font-mono text-xs uppercase text-muted">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
