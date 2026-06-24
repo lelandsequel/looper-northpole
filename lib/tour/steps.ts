@@ -43,6 +43,7 @@ export const TOUR_STEPS: TourStep[] = [
     action: "fill-refuse",
     actionDelayMs: 1000,
     waitForSelector: "[data-tour=intake]",
+    nextDelayMs: 1400,
   },
   {
     id: "intake-refuse-submit",
@@ -62,6 +63,7 @@ export const TOUR_STEPS: TourStep[] = [
     body: "Now a real initiative — evidence, NPV fields, rubric-complete JSON.",
     action: "load-sample",
     actionDelayMs: 900,
+    nextDelayMs: 1400,
   },
   {
     id: "intake-accept-submit",

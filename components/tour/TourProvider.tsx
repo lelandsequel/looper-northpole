@@ -122,14 +122,16 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [stepIndex, end]);
 
   const next = useCallback(async () => {
-    if (nextInFlight.current || transitioning || !canAdvance) return;
+    if (nextInFlight.current || transitioning) return;
+    if (!canAdvance && !watching) return;
     nextInFlight.current = true;
+    setWatching(false);
     setTransitioning(true);
     await delay(MANUAL_NEXT_DELAY_MS);
     setTransitioning(false);
     advanceStep();
     nextInFlight.current = false;
-  }, [canAdvance, transitioning, advanceStep]);
+  }, [canAdvance, watching, transitioning, advanceStep]);
 
   // Run step setup: navigate, wait for target, optional auto-action.
   useEffect(() => {
@@ -169,6 +171,10 @@ export function TourProvider({ children }: { children: ReactNode }) {
             ? { type: "run-build" }
             : { type: current.action },
         );
+        if (!current.nextDelayMs) {
+          setWatching(false);
+          setCanAdvance(true);
+        }
       } else {
         setWatching(false);
         const dwell = current.dwellMs ?? TOUR_DEFAULT_DWELL_MS;

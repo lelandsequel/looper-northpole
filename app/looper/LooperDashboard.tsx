@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, useCallback } from "react";
+import { useEffect, useRef, useState, useTransition, useCallback } from "react";
 
 import { FundingPill } from "@/components/FundingPill";
 import { ReceiptBar } from "@/components/ReceiptBar";
@@ -47,10 +47,14 @@ export function LooperDashboard({
   const [verify, setVerify] = useState(initial.verify);
   const [capacity, setCapacity] = useState({ used: initial.capacityUsed, total: initial.capacity });
   const [pending, start] = useTransition();
+  const inputRef = useRef(input);
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
 
   const handleSubmit = useCallback(() => {
     start(async () => {
-      const result = await submitInitiative(input);
+      const result = await submitInitiative(inputRef.current);
       if (!result.ok) {
         setRefusal(result);
         return;
@@ -61,7 +65,7 @@ export function LooperDashboard({
       setVerify(result.verify);
       setSelected(result.queue.find((q) => q.id === result.initiative.id) ?? null);
     });
-  }, [input, start]);
+  }, [start]);
 
   useEffect(() => {
     function onTour(e: Event) {
