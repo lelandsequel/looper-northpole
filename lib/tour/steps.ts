@@ -8,8 +8,14 @@ export type TourStep = {
   action?: "fill-refuse" | "submit-intake" | "load-sample" | "submit-intake" | "select-first-funded" | "run-build";
   actionDelayMs?: number;
   waitForSelector?: string;
+  /** Auto-advance after action completes (watch mode). */
   nextDelayMs?: number;
+  /** Min ms before Next is enabled on read-only steps. */
+  dwellMs?: number;
 };
+
+/** Default pause before Next unlocks on manual steps. */
+export const TOUR_DEFAULT_DWELL_MS = 2200;
 
 export const TOUR_STEPS: TourStep[] = [
   {
@@ -18,6 +24,7 @@ export const TOUR_STEPS: TourStep[] = [
     selector: "[data-tour=hero]",
     title: "The prioritization portal",
     body: "LOOPER scores intake. NORTHPOLE builds only what wins the queue. Every decision is receipted — no LLM in the rank path.",
+    dwellMs: 3200,
   },
   {
     id: "looper-header",
@@ -34,7 +41,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Not a suggestion box",
     body: "Watch CADMUS refuse unstructured intake. No evidence, no queue entry.",
     action: "fill-refuse",
-    actionDelayMs: 600,
+    actionDelayMs: 1000,
     waitForSelector: "[data-tour=intake]",
   },
   {
@@ -44,8 +51,8 @@ export const TOUR_STEPS: TourStep[] = [
     title: "REFUSED",
     body: "Thin asks die here. This is the gate the room asked for.",
     action: "submit-intake",
-    actionDelayMs: 400,
-    nextDelayMs: 1200,
+    actionDelayMs: 800,
+    nextDelayMs: 2800,
   },
   {
     id: "intake-accept",
@@ -54,7 +61,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Structured intake",
     body: "Now a real initiative — evidence, NPV fields, rubric-complete JSON.",
     action: "load-sample",
-    actionDelayMs: 400,
+    actionDelayMs: 900,
   },
   {
     id: "intake-accept-submit",
@@ -63,9 +70,9 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Rank moves",
     body: "Intake + prioritize. The whole portfolio re-scores. Deterministic — same inputs, same rank.",
     action: "submit-intake",
-    actionDelayMs: 500,
+    actionDelayMs: 900,
     waitForSelector: "[data-tour=queue]",
-    nextDelayMs: 1500,
+    nextDelayMs: 3200,
   },
   {
     id: "queue",
@@ -74,8 +81,8 @@ export const TOUR_STEPS: TourStep[] = [
     title: "NOW queue",
     body: "FUNDED = capacity allocated. BENCHED = scored but waiting. HELD = duplicate cluster.",
     action: "select-first-funded",
-    actionDelayMs: 800,
-    nextDelayMs: 600,
+    actionDelayMs: 1200,
+    nextDelayMs: 1800,
   },
   {
     id: "receipts",
@@ -100,9 +107,9 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Run the loop",
     body: "6D COSMIC spec, then build gate. Round 1 REFUSE, round 2 ship — the validator doesn't trust the builder.",
     action: "run-build",
-    actionDelayMs: 600,
+    actionDelayMs: 1000,
     waitForSelector: "[data-tour=build-results]",
-    nextDelayMs: 8000,
+    nextDelayMs: 11000,
   },
   {
     id: "build-gate",

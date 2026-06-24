@@ -21,6 +21,8 @@ export function TourOverlay({
   step,
   total,
   watching = false,
+  canAdvance = true,
+  transitioning = false,
   onNext,
   onSkip,
 }: {
@@ -31,6 +33,8 @@ export function TourOverlay({
   total: number;
   /** Lighter scrim + compact bar while auto-actions run (refuse, intake, build…). */
   watching?: boolean;
+  canAdvance?: boolean;
+  transitioning?: boolean;
   onNext: () => void;
   onSkip: () => void;
 }) {
@@ -82,11 +86,11 @@ export function TourOverlay({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onSkip();
-      if (e.key === "Enter" || e.key === "ArrowRight") onNext();
+      if ((e.key === "Enter" || e.key === "ArrowRight") && canAdvance && !transitioning) onNext();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onNext, onSkip]);
+  }, [onNext, onSkip, canAdvance, transitioning]);
 
   const pct = Math.round(((step + 1) / total) * 100);
   const scrim = watching ? SCRIM_WATCHING : SCRIM;
@@ -104,16 +108,14 @@ export function TourOverlay({
       {!spot && (
         <div
           className="absolute inset-0 transition-opacity duration-300"
-          style={{ background: scrim, pointerEvents: "auto" }}
-          onClick={onNext}
+          style={{ background: scrim, pointerEvents: "none" }}
           aria-hidden
         />
       )}
 
       {spot && (
         <>
-          {/* Click outside spotlight → next */}
-          <div className="absolute inset-0" style={{ pointerEvents: "auto" }} onClick={onNext} aria-hidden />
+          <div className="absolute inset-0" style={{ pointerEvents: "none" }} aria-hidden />
           <div
             className="absolute rounded-xl ring-2 ring-accent shadow-[0_0_0_1px_rgba(159,180,255,0.5),0_0_28px_rgba(159,180,255,0.25)] transition-all duration-300 ease-out"
             style={{
@@ -189,13 +191,16 @@ export function TourOverlay({
           <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
 
           <div className="mt-5 flex items-center justify-between gap-3">
-            <span className="font-mono text-xs text-muted">Enter → next · Esc skip</span>
+            <span className="font-mono text-xs text-muted">
+              {transitioning ? "Moving…" : canAdvance ? "Enter → next · Esc skip" : "Take a moment…"}
+            </span>
             <button
               type="button"
               onClick={onNext}
-              className="rounded-lg bg-accent/25 px-5 py-2 font-mono text-sm text-accent transition hover:bg-accent/35"
+              disabled={!canAdvance || transitioning}
+              className="rounded-lg bg-accent/25 px-5 py-2 font-mono text-sm text-accent transition hover:bg-accent/35 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {step + 1 >= total ? "Finish" : "Next"}
+              {transitioning ? "…" : step + 1 >= total ? "Finish" : "Next"}
             </button>
           </div>
         </div>

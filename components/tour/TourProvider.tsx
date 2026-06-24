@@ -11,11 +11,14 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { TOUR_STEPS, type TourStep } from "@/lib/tour/steps";
+import { TOUR_DEFAULT_DWELL_MS, TOUR_STEPS, type TourStep } from "@/lib/tour/steps";
 import { dispatchTourAction } from "@/lib/tour/events";
 import { TourOverlay } from "./TourOverlay";
 
 const STORAGE_KEY = "looper-tour-done";
+const NAV_DELAY_MS = 650;
+const SETTLE_DELAY_MS = 500;
+const MANUAL_NEXT_DELAY_MS = 700;
 
 type TourCtx = {
   active: boolean;
@@ -62,7 +65,10 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [watching, setWatching] = useState(false);
+  const [canAdvance, setCanAdvance] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const actionGen = useRef(0);
+  const nextInFlight = useRef(false);
 
   const step: TourStep | null = active ? (TOUR_STEPS[stepIndex] ?? null) : null;
 
@@ -71,6 +77,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setStepIndex(0);
     setReady(false);
     setWatching(false);
+    setCanAdvance(false);
+    setTransitioning(false);
+    nextInFlight.current = false;
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {
@@ -83,18 +92,33 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setActive(true);
     setReady(false);
     setWatching(false);
+    setCanAdvance(false);
+    setTransitioning(false);
+    nextInFlight.current = false;
     router.push(TOUR_STEPS[0]?.path ?? "/");
   }, [router]);
 
-  const next = useCallback(() => {
+  const advanceStep = useCallback(() => {
     if (stepIndex + 1 >= TOUR_STEPS.length) {
       end();
       return;
     }
+    actionGen.current += 1;
     setReady(false);
     setWatching(false);
+    setCanAdvance(false);
     setStepIndex((i) => i + 1);
   }, [stepIndex, end]);
+
+  const next = useCallback(async () => {
+    if (nextInFlight.current || transitioning || !canAdvance) return;
+    nextInFlight.current = true;
+    setTransitioning(true);
+    await delay(MANUAL_NEXT_DELAY_MS);
+    setTransitioning(false);
+    advanceStep();
+    nextInFlight.current = false;
+  }, [canAdvance, transitioning, advanceStep]);
 
   // Navigate + wait for target when step changes
   useEffect(() => {
@@ -105,7 +129,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     (async () => {
       if (pathname !== step.path) {
         router.push(step.path);
-        await delay(350);
+        await delay(NAV_DELAY_MS);
       }
 
       const waitSel = step.waitForSelector ?? step.selector;
@@ -114,14 +138,15 @@ export function TourProvider({ children }: { children: ReactNode }) {
       }
       if (cancelled) return;
 
-      await delay(200);
+      await delay(SETTLE_DELAY_MS);
       if (cancelled) return;
 
       const gen = ++actionGen.current;
       if (step.action) {
         setWatching(true);
         setReady(true);
-        await delay(step.actionDelayMs ?? 500);
+        setCanAdvance(false);
+        await delay(step.actionDelayMs ?? 800);
         if (cancelled || gen !== actionGen.current) return;
         dispatchTourAction(
           step.action === "run-build"
@@ -131,14 +156,24 @@ export function TourProvider({ children }: { children: ReactNode }) {
       } else {
         setWatching(false);
         setReady(true);
+        const dwell = step.dwellMs ?? TOUR_DEFAULT_DWELL_MS;
+        setCanAdvance(false);
+        await delay(dwell);
+        if (cancelled || gen !== actionGen.current) return;
+        setCanAdvance(true);
       }
 
       if (step.nextDelayMs) {
         await delay(step.nextDelayMs);
         if (cancelled || gen !== actionGen.current) return;
+        setTransitioning(true);
+        await delay(MANUAL_NEXT_DELAY_MS);
+        if (cancelled || gen !== actionGen.current) return;
+        setTransitioning(false);
         if (stepIndex + 1 < TOUR_STEPS.length) {
           setReady(false);
           setWatching(false);
+          setCanAdvance(false);
           setStepIndex((i) => i + 1);
         }
       }
@@ -160,6 +195,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
           step={stepIndex}
           total={TOUR_STEPS.length}
           watching={watching}
+          canAdvance={watching || canAdvance}
+          transitioning={transitioning}
           onNext={next}
           onSkip={end}
         />
@@ -182,7 +219,7 @@ export function TourAutoStart() {
       /* ignore */
     }
     if (force && !active) {
-      const t = window.setTimeout(start, 500);
+      const t = window.setTimeout(start, 800);
       return () => window.clearTimeout(t);
     }
   }, [start, active]);
