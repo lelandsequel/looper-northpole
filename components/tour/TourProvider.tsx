@@ -63,7 +63,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [settled, setSettled] = useState(false);
   const [watching, setWatching] = useState(false);
   const [canAdvance, setCanAdvance] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
@@ -71,11 +71,13 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const nextInFlight = useRef(false);
 
   const step: TourStep | null = active ? (TOUR_STEPS[stepIndex] ?? null) : null;
+  const stepId = step?.id ?? null;
 
   const end = useCallback(() => {
+    actionGen.current += 1;
     setActive(false);
     setStepIndex(0);
-    setReady(false);
+    setSettled(false);
     setWatching(false);
     setCanAdvance(false);
     setTransitioning(false);
@@ -88,15 +90,24 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const start = useCallback(() => {
+    actionGen.current += 1;
     setStepIndex(0);
     setActive(true);
-    setReady(false);
+    setSettled(false);
     setWatching(false);
     setCanAdvance(false);
     setTransitioning(false);
     nextInFlight.current = false;
-    router.push(TOUR_STEPS[0]?.path ?? "/");
-  }, [router]);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    const first = TOUR_STEPS[0]?.path ?? "/";
+    if (pathname !== first) {
+      router.push(first);
+    }
+  }, [pathname, router]);
 
   const advanceStep = useCallback(() => {
     if (stepIndex + 1 >= TOUR_STEPS.length) {
@@ -104,7 +115,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       return;
     }
     actionGen.current += 1;
-    setReady(false);
+    setSettled(false);
     setWatching(false);
     setCanAdvance(false);
     setStepIndex((i) => i + 1);
@@ -120,58 +131,62 @@ export function TourProvider({ children }: { children: ReactNode }) {
     nextInFlight.current = false;
   }, [canAdvance, transitioning, advanceStep]);
 
-  // Navigate + wait for target when step changes
+  // Run step setup: navigate, wait for target, optional auto-action.
   useEffect(() => {
-    if (!active || !step) return;
+    if (!active || !stepId) return;
+
+    const current = TOUR_STEPS[stepIndex];
+    if (!current) return;
 
     let cancelled = false;
+    const gen = ++actionGen.current;
 
     (async () => {
-      if (pathname !== step.path) {
-        router.push(step.path);
+      if (pathname !== current.path) {
+        router.push(current.path);
         await delay(NAV_DELAY_MS);
+        if (cancelled || gen !== actionGen.current) return;
       }
 
-      const waitSel = step.waitForSelector ?? step.selector;
+      const waitSel = current.waitForSelector ?? current.selector;
       if (waitSel) {
         await waitForSelector(waitSel, 15000);
       }
-      if (cancelled) return;
+      if (cancelled || gen !== actionGen.current) return;
 
       await delay(SETTLE_DELAY_MS);
-      if (cancelled) return;
+      if (cancelled || gen !== actionGen.current) return;
 
-      const gen = ++actionGen.current;
-      if (step.action) {
+      setSettled(true);
+
+      if (current.action) {
         setWatching(true);
-        setReady(true);
         setCanAdvance(false);
-        await delay(step.actionDelayMs ?? 800);
+        await delay(current.actionDelayMs ?? 800);
         if (cancelled || gen !== actionGen.current) return;
         dispatchTourAction(
-          step.action === "run-build"
+          current.action === "run-build"
             ? { type: "run-build" }
-            : { type: step.action },
+            : { type: current.action },
         );
       } else {
         setWatching(false);
-        setReady(true);
-        const dwell = step.dwellMs ?? TOUR_DEFAULT_DWELL_MS;
+        const dwell = current.dwellMs ?? TOUR_DEFAULT_DWELL_MS;
         setCanAdvance(false);
         await delay(dwell);
         if (cancelled || gen !== actionGen.current) return;
         setCanAdvance(true);
       }
 
-      if (step.nextDelayMs) {
-        await delay(step.nextDelayMs);
+      if (current.nextDelayMs) {
+        await delay(current.nextDelayMs);
         if (cancelled || gen !== actionGen.current) return;
         setTransitioning(true);
         await delay(MANUAL_NEXT_DELAY_MS);
         if (cancelled || gen !== actionGen.current) return;
         setTransitioning(false);
         if (stepIndex + 1 < TOUR_STEPS.length) {
-          setReady(false);
+          setSettled(false);
           setWatching(false);
           setCanAdvance(false);
           setStepIndex((i) => i + 1);
@@ -182,19 +197,21 @@ export function TourProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [active, step, stepIndex, pathname, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- router stable; stepId tracks step
+  }, [active, stepId, stepIndex, pathname]);
 
   return (
     <TourContext.Provider value={{ active, start, end }}>
       {children}
-      {active && ready && step && (
+      {active && step && (
         <TourOverlay
-          selector={step.selector}
+          selector={settled ? step.selector : undefined}
           title={step.title}
           body={step.body}
           step={stepIndex}
           total={TOUR_STEPS.length}
           watching={watching}
+          pending={!settled}
           canAdvance={watching || canAdvance}
           transitioning={transitioning}
           onNext={next}
@@ -212,12 +229,6 @@ export function TourAutoStart() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const force = params.get("tour") === "1";
-    let done = false;
-    try {
-      done = localStorage.getItem(STORAGE_KEY) === "1";
-    } catch {
-      /* ignore */
-    }
     if (force && !active) {
       const t = window.setTimeout(start, 800);
       return () => window.clearTimeout(t);

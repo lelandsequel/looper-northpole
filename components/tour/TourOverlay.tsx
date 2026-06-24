@@ -21,6 +21,7 @@ export function TourOverlay({
   step,
   total,
   watching = false,
+  pending = false,
   canAdvance = true,
   transitioning = false,
   onNext,
@@ -33,6 +34,8 @@ export function TourOverlay({
   total: number;
   /** Lighter scrim + compact bar while auto-actions run (refuse, intake, build…). */
   watching?: boolean;
+  /** Step still navigating / waiting for target. */
+  pending?: boolean;
   canAdvance?: boolean;
   transitioning?: boolean;
   onNext: () => void;
@@ -192,12 +195,18 @@ export function TourOverlay({
 
           <div className="mt-5 flex items-center justify-between gap-3">
             <span className="font-mono text-xs text-muted">
-              {transitioning ? "Moving…" : canAdvance ? "Enter → next · Esc skip" : "Take a moment…"}
+              {pending
+                ? "Starting…"
+                : transitioning
+                  ? "Moving…"
+                  : canAdvance
+                    ? "Enter → next · Esc skip"
+                    : "Take a moment…"}
             </span>
             <button
               type="button"
               onClick={onNext}
-              disabled={!canAdvance || transitioning}
+              disabled={pending || !canAdvance || transitioning}
               className="rounded-lg bg-accent/25 px-5 py-2 font-mono text-sm text-accent transition hover:bg-accent/35 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {transitioning ? "…" : step + 1 >= total ? "Finish" : "Next"}
