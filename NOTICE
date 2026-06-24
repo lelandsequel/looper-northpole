@@ -1,0 +1,19 @@
+LOOPER + NORTHPOLE
+Copyright 2026 Leland "TJ" Jourdan II
+
+This product includes software developed as part of the Jourdan Labs / Chamber
+engine lineage. Licensed under the Apache License, Version 2.0.
+
+Third-party and vendored components
+-----------------------------------
+
+- LUNA chamber ledger + witness (`lib/luna/chamber/`) — vendored from Chamber
+  LUNA v2; used under Apache-2.0.
+- STRATA audit fixture (`lib/strata/`) — deterministic query verification demo.
+- 6D COSMIC pipeline (`lib/six-d/cosmic/`) — LUNA-sealed spec engine.
+- CADMUS intake gate (`lib/cadmus/`) — deterministic intent-to-spec discipline.
+- HL Prioritization methodology — scoring model adapted from Bailey Jones's
+  HL Prioritization Operating System white paper (synthetic demo data only;
+  no confidential bank data in this repository).
+
+Dependencies are listed in package-lock.json with their respective licenses.

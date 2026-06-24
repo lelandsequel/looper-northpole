@@ -1,7 +1,7 @@
 {
   "name": "looper-northpole",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "LOOPER + NORTHPOLE — Agility front-door and 6D COSMIC build workshop. Real engines, ledger receipts, no mocks.",
   "scripts": {
@@ -33,5 +33,9 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "UNLICENSED"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lelandsequel/looper-northpole.git"
+  }
 }

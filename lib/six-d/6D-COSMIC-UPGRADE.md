@@ -48,7 +48,7 @@ This *is* the Scott round-2 pitch, running, on real artifacts:
 
 The semantic layer (ASTRAL/NEBULA) defines what the intent means. The 6D engine then **refuses to emit any artifact element it can't bind back to that semantic model** (VELLUM UNBOUND → AURORA REFUSE → open question). That's "AtScale defines truth, COSMIC enforces it" — demonstrated, on SDLC, clickable.
 
-And it's the governed answer to **JPMC's 6D framework**: Erika's runs on LLM Suite (gen-AI that drifts). The COSMIC-native Workbench runs the same six phases **deterministically, semantically grounded, refusal-gated, hash-chained** — the exact governance layer the framework doesn't have yet.
+And it's the governed answer to **enterprise 6D SDLC frameworks** that run on gen-AI suites (which drift). The COSMIC-native Workbench runs the same six phases **deterministically, semantically grounded, refusal-gated, hash-chained** — the governance layer those frameworks typically lack.
 
 ## Prioritized improvements
 

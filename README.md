@@ -1,67 +1,107 @@
 # LOOPER + NORTHPOLE
 
-Agility front-door (**LOOPER**) and 6D COSMIC build workshop (**NORTHPOLE**). Real engines, SQLite ledger receipts, no mocks.
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![CI](https://github.com/lelandsequel/looper-northpole/actions/workflows/ci.yml/badge.svg)](https://github.com/lelandsequel/looper-northpole/actions/workflows/ci.yml)
+
+**LOOPER** — structured intake → CADMUS gate → dedup → score → allocate → ranked queue.  
+**NORTHPOLE** — funded initiatives → 6D COSMIC spec → build gate → STRATA audit → feedback loop.
+
+Deterministic prioritization. Hash-chained receipts. No telemetry. No LLM in the rank path.
 
 | Surface | Route | What it does |
 |---------|-------|--------------|
-| **LOOPER** | `/looper` | Structured JSON intake → CADMUS gate → dedup → score → allocate → ranked NOW queue |
-| **NORTHPOLE** | `/north-pole` | Funded initiatives → 6D COSMIC spec → Pan gate build → STRATA audit → feedback to Agility |
+| **LOOPER** | `/looper` | JSON intake → refuse bad shape → RICE+NPV rank → FUNDED/BENCHED queue |
+| **NORTHPOLE** | `/north-pole` | Funded items → 6D spec → build gate demo → re-prioritize |
 
-## Quick start
+## Clone and verify (anti-timebomb packet)
 
 ```bash
 git clone https://github.com/lelandsequel/looper-northpole.git
 cd looper-northpole
-npm run setup    # install + seed + test
-npm run dev      # http://localhost:3000
+npm run setup          # install + seed + 39 tests
+npm run dev            # http://localhost:3000
 ```
 
-LUNA Witness + STRATA audit logic are **vendored in-repo** (`lib/luna/chamber/`, `lib/strata/`) — no sibling repos required.
+What you're proving:
 
-## Unlock gate
-
-Demo courtesy lock (not real security). Visit any route → redirected to `/unlock`.
-
-- **Default code:** `333333`
-- Override via `.env`: `GATE_CODE=333333` (see `.env.example`)
-
-After unlock, cookie `looper_unlock` grants access to `/looper` and `/north-pole`.
+1. **Read every line** — no obfuscated binaries, no mystery deps beyond `package-lock.json`.
+2. **Tests green** — includes E2E: intake → prioritize → 6D → build gate → ledger `verify()`.
+3. **Synthetic data only** — seed portfolio is illustrative (`lib/agility/seed/initiatives.mjs`).
+4. **No phone-home** — see [SECURITY.md](SECURITY.md).
 
 ## End-to-end flow
 
 ```
-1. npm run seed          → 12 initiatives in SQLite (data/looper-northpole.db)
+1. npm run seed          → 12 initiatives in SQLite (data/ — gitignored)
 2. /looper               → ranked queue, FUNDED/BENCHED pills, ledger head
-3. Paste JSON intake     → CADMUS refuses bad shape; good JSON re-prioritizes queue
+3. Paste JSON intake     → CADMUS refuses bad shape; good JSON re-prioritizes
 4. /north-pole           → funded items from LOOPER ledger
-5. "Run 6D + Build"      → COSMIC spec → BUILD_PENDING witness → Pan gate (2-round demo)
-                         → STRATA audit → deliveryConfidence feedback → re-prioritize
+5. "Run 6D + Build"      → COSMIC spec → build gate (demo) → STRATA fixture audit
+                         → deliveryConfidence feedback → re-prioritize
 ```
+
+## Honest scope — what's real vs. what's next
+
+### LOOPER (meeting-ready today)
+
+| Capability | Status |
+|------------|--------|
+| Structured intake + refusal | ✅ CADMUS gate |
+| Dedup ("third calculator") | ✅ Jaccard cluster hold |
+| RICE + 3yr NPV scoring | ✅ Deterministic receipts |
+| NOW / funded / benched queue | ✅ Capacity allocate |
+| Epic/story emission to Jira | 🔜 adapter layer (verification-first) |
+
+LOOPER is what you described in the room: **one door in, scored rank out, every decision receipted.**
+
+### NORTHPOLE (spine yes, muscle partial)
+
+| Capability | Status |
+|------------|--------|
+| Initiative → 6D COSMIC spec | ✅ LUNA-sealed, AURORA gate |
+| REFUSE → RESOLVE → RECOMPUTE build loop | ✅ Architecture + tests |
+| Executable acceptance probes | ✅ Demo: `priceQuote` contract |
+| **Real agent writes production code** | ❌ **Not wired** — `Builder` seam is injected |
+| Multi-file repo builds | ❌ Demo is single-function fixture |
+| Deploy to Gaia / FITS | ❌ Private adapter territory |
+
+**The full-asshole play is half-built.** NORTHPOLE has the **gate** nobody else has (validator refuses, hands typed resolve needs, loops until green or exhausts). The **builder** slot is a demo: round 1 ships `lib/build-leg/demo/broken/priceQuote.ts`, round 2 ships the fixed version. That proves the loop — it does not prove an LLM/agent can build your Texas HELOC.
+
+To make NORTHPOLE actually build shit:
+
+1. Wire a real `Builder` at `lib/build-leg/orchestrator.ts` (agent writes files in a sandbox).
+2. Expand `from-spec.ts` to emit work-orders from COSMIC output (not just `STALE_DATA_STORY`).
+3. Generalize `validator.ts` beyond the pricing demo (file probes, test runs, STRATA hooks).
+4. Keep LOOPER's verification layer on anything that touches Jira (epics/stories = structured emit + refuse, not LLM freestyle).
+
+The moat is the **validator + receipt loop**, not the codegen commodity.
+
+## Unlock gate (demo only)
+
+Visit any route → `/unlock`. Default code `333333` (override via `GATE_CODE` in `.env`).
+
+## Architecture
+
+- **CADMUS** (`lib/cadmus/`) — refuses unstructured intake
+- **Agility** (`lib/agility/`) — dedup, RICE+NPV, tier, portfolio allocate
+- **6D COSMIC** (`lib/six-d/cosmic/`) — initiative → spec, LUNA chain
+- **Build leg** (`lib/build-leg/`) — REFUSE→RESOLVE→RECOMPUTE (demo builder today)
+- **STRATA** (`lib/strata/`) — certified query audit on fixture
+- **LUNA Witness** (`lib/luna/chamber/`) — vendored BUILD_PENDING atoms
+- **Ledger** (`lib/store/`) — SQLite WAL, tamper-evident chain
 
 ## Scripts
 
 | Command | Purpose |
 |---------|---------|
+| `npm run setup` | Install + seed + test (first clone) |
 | `npm run dev` | Local dev server |
-| `npm run seed` | Seed initiative queue (`data/` is gitignored) |
-| `npm run setup` | Install + seed + test (first-time bootstrap) |
-| `npm test` | 39 unit + E2E tests (tsx) |
-| `npm run build` | Production Next.js build |
-| `npm run prioritize` | CLI: print ranked queue from seeded data |
-
-## Architecture
-
-- **CADMUS** (`lib/cadmus/`) — refuses unstructured intake; only valid initiative JSON passes
-- **Agility** (`lib/agility/`) — dedup, RICE+NPV score, tier, portfolio allocate
-- **6D COSMIC** (`lib/six-d/cosmic/`) — initiative → spec via LUNA-sealed run
-- **Build leg** (`lib/build-leg/`) — Pan gate REFUSE→RESOLVE→RECOMPUTE loop
-- **STRATA** (`lib/strata/`) — certified query audit on production fixture
-- **LUNA Witness** (`lib/luna/chamber/`) — BUILD_PENDING witness atoms (vendored from Chamber LUNA v2)
-- **Ledger** (`lib/store/`) — SQLite WAL; tamper-evident event chain
+| `npm run test` | 39 unit + E2E tests |
+| `npm run prioritize` | CLI ranked queue from seed |
 
 ## CI
 
-GitHub Actions on push/PR to `main`: `npm ci` → seed → test → build.
+GitHub Actions: `npm ci` → seed → test → build on every push/PR to `main`.
 
 ## Health
 
@@ -69,4 +109,4 @@ GitHub Actions on push/PR to `main`: `npm ci` → seed → test → build.
 
 ## License
 
-UNLICENSED — private Chamber build.
+Apache-2.0 — see [LICENSE](LICENSE). Vendored components: [NOTICE](NOTICE).
