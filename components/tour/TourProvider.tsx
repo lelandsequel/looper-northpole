@@ -61,6 +61,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [ready, setReady] = useState(false);
+  const [watching, setWatching] = useState(false);
   const actionGen = useRef(0);
 
   const step: TourStep | null = active ? (TOUR_STEPS[stepIndex] ?? null) : null;
@@ -69,6 +70,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setActive(false);
     setStepIndex(0);
     setReady(false);
+    setWatching(false);
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {
@@ -80,6 +82,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
     setStepIndex(0);
     setActive(true);
     setReady(false);
+    setWatching(false);
     router.push(TOUR_STEPS[0]?.path ?? "/");
   }, [router]);
 
@@ -89,6 +92,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
       return;
     }
     setReady(false);
+    setWatching(false);
     setStepIndex((i) => i + 1);
   }, [stepIndex, end]);
 
@@ -112,10 +116,11 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
       await delay(200);
       if (cancelled) return;
-      setReady(true);
 
       const gen = ++actionGen.current;
       if (step.action) {
+        setWatching(true);
+        setReady(true);
         await delay(step.actionDelayMs ?? 500);
         if (cancelled || gen !== actionGen.current) return;
         dispatchTourAction(
@@ -123,6 +128,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
             ? { type: "run-build" }
             : { type: step.action },
         );
+      } else {
+        setWatching(false);
+        setReady(true);
       }
 
       if (step.nextDelayMs) {
@@ -130,6 +138,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
         if (cancelled || gen !== actionGen.current) return;
         if (stepIndex + 1 < TOUR_STEPS.length) {
           setReady(false);
+          setWatching(false);
           setStepIndex((i) => i + 1);
         }
       }
@@ -150,6 +159,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
           body={step.body}
           step={stepIndex}
           total={TOUR_STEPS.length}
+          watching={watching}
           onNext={next}
           onSkip={end}
         />
