@@ -54,11 +54,88 @@ export const goalNeedPhrase = (text: string): string => {
 const GOAL_HAS_VERB =
   /\b(build|launch|enable|deliver|implement|create|sign|onboard|validate|scale|meet|confirm|preserve)\b/i;
 
+/** Portfolio metadata — trace in intent.constraints, not in design/dev prose. */
+export const isPortfolioMetadataConstraint = (text: string): boolean => {
+  const t = String(text ?? "").trim();
+  return (
+    /^outcome:/i.test(t) ||
+    /^area:/i.test(t) ||
+    /^channel:/i.test(t) ||
+    /^talent:/i.test(t) ||
+    /^budget cycle:/i.test(t) ||
+    /^depends on /i.test(t)
+  );
+};
+
+/** Engineering-facing constraints only (excludes portfolio metadata). */
+export const engineeringConstraints = (constraints: string[]): string[] =>
+  constraints.filter((c) => !isPortfolioMetadataConstraint(c));
+
+/** Validation/reach goals — epic-level NFRs, not Jira stories. */
+export const isPortfolioMetaGoal = (text: string): boolean => {
+  const t = String(text ?? "").trim();
+  return (
+    /^validate /i.test(t) ||
+    /^scale to /i.test(t) ||
+    /^meet regulatory/i.test(t) ||
+    /^deliver the internal/i.test(t) ||
+    /^preserve strategic/i.test(t)
+  );
+};
+
+/** Add a definite article to bare noun-phrase goals. */
+export const articleizeNounPhrase = (phrase: string): string => {
+  const t = phrase.trim();
+  if (!t || /^(the|a|an)\s/i.test(t)) return t;
+  if (/^(validate|scale|meet|deliver|confirm|preserve)\b/i.test(t)) return t;
+  return `the ${t}`;
+};
+
+/** Primary build verb from context prose (sign/onboard before generic launch). */
+export const primaryBuildVerb = (context: string): string => {
+  const t = String(context ?? "").toLowerCase();
+  if (/\bonboards?\b/.test(t)) return "onboard";
+  if (/\bsigns?\b/.test(t)) return "sign";
+  if (/\benrolls?\b/.test(t)) return "enroll";
+  if (/\bbuilds?\b/.test(t)) return "build";
+  return "launch";
+};
+
+/**
+ * Split a primary outcome into ticket-shaped build slices when context names
+ * compound verbs (e.g. "signs and onboards …").
+ */
+export const decomposeBuildGoals = (context: string, primaryGoal: string): string[] => {
+  const ctx = String(context ?? "").trim();
+  const primary = stripPeriod(String(primaryGoal ?? "").trim());
+
+  const compound = ctx.match(
+    /\bthat\s+((?:signs?|onboards?|enrolls?|registers?)(?:\s+and\s+(?:signs?|onboards?|enrolls?|registers?))+)\s+(.+?)(?:[.;]|$)/i,
+  );
+  if (compound) {
+    const verbPart = compound[1];
+    const object = compound[2].trim();
+    const verbs = verbPart.split(/\s+and\s+/i).map((v) => v.replace(/s$/i, "").toLowerCase());
+    const slices = verbs.map((v) => `${v} ${object}`);
+    if (slices.length >= 2) return slices.map((s) => stripPeriod(s));
+  }
+
+  const singleVerb = ctx.match(/\b(signs?|onboards?|enrolls?|builds?|launches?|enables?)\s+(.+?)(?:[.;]|$)/i);
+  if (singleVerb) {
+    const verb = singleVerb[1].replace(/s$/i, "").toLowerCase();
+    const obj = singleVerb[2].trim();
+    if (obj.length > 10) return [stripPeriod(`${verb} ${obj}`)];
+  }
+
+  return primary ? [primary] : [];
+};
+
 /** Ticket-style story title — imperative when the goal is a bare noun phrase. */
-export const storyTitleFromGoal = (text: string): string => {
+export const storyTitleFromGoal = (text: string, contextText?: string): string => {
   const need = goalNeedPhrase(text);
   if (GOAL_HAS_VERB.test(need)) return tidy(stripPeriod(cap(need)));
-  return tidy(stripPeriod(cap(`Launch ${need}`)));
+  const verb = contextText ? cap(primaryBuildVerb(contextText)) : "Launch";
+  return tidy(`${verb} ${articleizeNounPhrase(cap(need))}`);
 };
 
 /** "a" vs "an" for user-story actors. */
@@ -75,13 +152,29 @@ export const asActorPhrase = (actor: string): string => {
 };
 
 /** "I want …" clause with correct infinitive when the need starts with a verb. */
-export const userWantClause = (text: string): string => {
+export const userWantClause = (text: string, contextText?: string): string => {
   const need = goalNeedPhrase(text);
   if (/^(validate|scale|meet|deliver|confirm|preserve)\b/i.test(need)) {
     return `I want to ${need}`;
   }
   if (GOAL_HAS_VERB.test(need)) return `I want to ${need}`;
-  return `I want to launch ${need}`;
+  const verb = contextText ? primaryBuildVerb(contextText) : "launch";
+  return `I want to ${verb} ${articleizeNounPhrase(need)}`;
+};
+
+/** Acceptance text for a decomposed build slice (deterministic, context-grounded). */
+export const acceptanceForBuildSlice = (sliceText: string, sliceIndex: number, contextText: string): string => {
+  const slice = stripPeriod(String(sliceText ?? "").trim());
+  const verbMatch = slice.match(/^(sign|onboard|enroll|register|build|launch|enable)\s+(.+)$/i);
+  if (verbMatch) {
+    const [, verb, rest] = verbMatch;
+    return tidy(`The self-serve portal ${verb}s ${rest}.`);
+  }
+  if (sliceIndex === 0 && contextText) {
+    const desc = sentences(contextText).filter((s) => s.length > 20 && !isNormative(s));
+    if (desc.length) return tidy(desc[0]);
+  }
+  return tidy(slice);
 };
 
 /** Acceptance text for adapter-shaped goals (deterministic, no invention). */

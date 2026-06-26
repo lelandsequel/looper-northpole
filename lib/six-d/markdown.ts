@@ -18,6 +18,7 @@ export const KIND_TITLES: Record<string, string> = {
   ux_consideration: "UX considerations",
   state: "States",
   epic: "Epic",
+  epic_nfr: "Epic-level validation (not separate stories)",
   dependency_graph: "Dependencies",
   implementation_plan: "Implementation plans",
   dev_prompt: "Dev prompts (emitted by CADMUS)",

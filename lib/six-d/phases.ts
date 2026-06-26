@@ -16,9 +16,14 @@ import {
   cap,
   exclusionOf,
   isNormative,
+  acceptanceForBuildSlice,
   acceptanceForGoal,
   asActorPhrase,
+  decomposeBuildGoals,
+  engineeringConstraints,
   goalNeedPhrase,
+  isPortfolioMetaGoal,
+  isPortfolioMetadataConstraint,
   lower1,
   mandatedMechanism,
   numbersWithUnits,
@@ -181,26 +186,43 @@ export function definePhase(ctx: PhaseCtx): PhaseArtifact {
     );
   }
 
-  // User stories — one per goal, short ticket voice.
+  const contextText = contextAtoms[0]?.text ?? intent.context;
+  const metaGoals = goals.filter((g) => isPortfolioMetaGoal(g.text));
+  const primaryGoal = goals.find((g) => !isPortfolioMetaGoal(g.text));
+  const buildSlices = primaryGoal
+    ? decomposeBuildGoals(contextText, primaryGoal.text)
+    : goals.filter((g) => !isPortfolioMetaGoal(g.text)).map((g) => g.text);
+  const buildRefs = [
+    ...(primaryGoal ? [primaryGoal.id] : []),
+    ...(contextAtoms[0] ? [contextAtoms[0].id] : []),
+    "intent.title",
+    ...(actors[0] ? [actorRef(ctx, actors[0])] : []),
+  ];
+
+  // User stories — build slices only; portfolio meta goals stay epic-level NFRs.
   const actor = actors[0] ?? "user";
-  for (const g of goals) {
+  for (const slice of buildSlices) {
     c.el(
       "story",
-      `${asActorPhrase(actor)}, ${userWantClause(g.text)}.`,
-      [g.id, "intent.title", ...(actors[0] ? [actorRef(ctx, actor)] : [])],
-      { title: storyTitleFromGoal(g.text), fields: { actor } },
+      `${asActorPhrase(actor)}, ${userWantClause(slice, contextText)}.`,
+      buildRefs,
+      { title: storyTitleFromGoal(slice, contextText), fields: { actor } },
     );
   }
 
-  // Acceptance criteria — description-derived for primary goal; shaped text for meta goals.
-  const contextText = contextAtoms[0]?.text ?? intent.context;
-  for (let i = 0; i < goals.length; i++) {
-    const g = goals[i];
-    const then = acceptanceForGoal(g.text, i, contextText);
+  for (const g of metaGoals) {
+    const idx = goals.indexOf(g);
+    const then = acceptanceForGoal(g.text, idx, contextText);
+    c.el("epic_nfr", then, [g.id], { title: tidy(g.text) });
+  }
+
+  // Acceptance criteria — one per build slice; meta validation captured as epic_nfr.
+  for (let i = 0; i < buildSlices.length; i++) {
+    const then = acceptanceForBuildSlice(buildSlices[i], i, contextText);
     c.el(
       "acceptance_criterion",
       then,
-      [g.id, ...(i === 0 && contextAtoms[0] ? [contextAtoms[0].id] : [])],
+      buildRefs,
       {
         fields: {
           given: "the feature is in the pilot scope",
@@ -211,10 +233,10 @@ export function definePhase(ctx: PhaseCtx): PhaseArtifact {
     );
   }
   // Extra ACs from description sentences on the primary story (when not normative).
-  if (goals.length && contextAtoms[0]) {
+  if (buildSlices.length && contextAtoms[0]) {
     const extra = sentences(contextAtoms[0].text).filter((s) => s.length > 20 && !isNormative(s));
     for (let si = 1; si < extra.length; si++) {
-      c.el("acceptance_criterion", tidy(extra[si]), [contextAtoms[0].id, goals[0].id]);
+      c.el("acceptance_criterion", tidy(extra[si]), [contextAtoms[0].id, ...(primaryGoal ? [primaryGoal.id] : [])]);
     }
   }
   // b) normative sentences in the context ("must / should / require…").
@@ -295,11 +317,20 @@ export function designPhase(ctx: PhaseCtx): PhaseArtifact {
   const actors = actorsIn(intentText(ctx));
   const allBuckets = bucketsFor(intentText(ctx));
 
-  // Direction — assembled strictly from source statements.
+  const contextText = contextAtoms[0]?.text ?? intent.context;
+  const primaryGoal = goals.find((g) => !isPortfolioMetaGoal(g.text));
+  const buildDeliver = primaryGoal
+    ? decomposeBuildGoals(contextText, primaryGoal.text).map((s) => lower1(stripPeriod(s)))
+    : goals.filter((g) => !isPortfolioMetaGoal(g.text)).map((g) => lower1(stripPeriod(g.text)));
+  const engConstraints = constraints.filter((a) => !isPortfolioMetadataConstraint(a.text));
+
+  // Direction — build slices + engineering constraints only (portfolio metadata stays in intent).
   const dir = [
-    `Serve ${actors.length ? actors.join(", ") : "the (unnamed) user"} for "${intent.title}".`,
-    goals.length ? `The experience must deliver: ${goals.map((g) => lower1(stripPeriod(g.text))).join("; ")}.` : "",
-    constraints.length ? `While honoring: ${constraints.map((a) => lower1(stripPeriod(a.text))).join("; ")}.` : "",
+    actors.length ? `Serve the ${actors[0]} for "${intent.title}".` : `Serve the user for "${intent.title}".`,
+    buildDeliver.length ? `The experience must deliver: ${buildDeliver.join("; ")}.` : "",
+    engConstraints.length
+      ? `While honoring: ${engConstraints.map((a) => lower1(stripPeriod(a.text))).join("; ")}.`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -398,6 +429,7 @@ export function distributePhase(ctx: PhaseCtx): PhaseArtifact {
   const goals = atoms(ctx.index, "goal");
   const contextAtoms = atoms(ctx.index, "context");
   const defineStories = phaseEls(ctx, "define", "story");
+  const defineEpicNfrs = phaseEls(ctx, "define", "epic_nfr");
   const defineAcs = phaseEls(ctx, "define", "acceptance_criterion");
   const objective = phaseEls(ctx, "define", "objective")[0];
   const problem = phaseEls(ctx, "define", "problem_statement")[0];
@@ -416,48 +448,57 @@ export function distributePhase(ctx: PhaseCtx): PhaseArtifact {
     { title: intent.title },
   );
 
-  // Assign every AC to exactly one story (by goal ref, then bucket affinity).
-  const storyBuckets: Bucket[][] = goals.map((g) => bucketsFor(g.text));
-  const acAssignment = new Map<string, number>(); // ac.id -> story index
+  for (const nfr of defineEpicNfrs) {
+    c.el("epic_nfr", nfr.body, nfr.sourceRefs, { title: nfr.title });
+  }
+
+  const storyBuckets: Bucket[][] = defineStories.map((s) => bucketsFor(s.title ?? s.body));
+  const metaGoalIds = new Set(goals.filter((g) => isPortfolioMetaGoal(g.text)).map((g) => g.id));
+  const buildAcs = defineAcs.filter((ac) => !ac.sourceRefs.some((ref) => metaGoalIds.has(ref)));
+
+  // Assign build ACs to stories in construction order; extras fall back to bucket affinity.
+  const acAssignment = new Map<string, number>();
+  for (let i = 0; i < buildAcs.length; i++) {
+    acAssignment.set(buildAcs[i].id, Math.min(i, Math.max(defineStories.length - 1, 0)));
+  }
   for (const ac of defineAcs) {
-    const goalIdx = goals.findIndex((g) => ac.sourceRefs.includes(g.id));
-    if (goalIdx >= 0) {
-      acAssignment.set(ac.id, goalIdx);
-      continue;
-    }
+    if (acAssignment.has(ac.id)) continue;
     const acBucketList = bucketsFor(ac.body);
     const byBucket = storyBuckets.findIndex((bs) => bs.some((b) => acBucketList.includes(b)));
     acAssignment.set(ac.id, byBucket >= 0 ? byBucket : 0);
   }
 
-  // Dependencies (deterministic rules), computed on goal indices first.
   const idxWith = (b: Bucket): number => storyBuckets.findIndex((bs) => bs.includes(b));
-  const dependsOn: number[][] = goals.map(() => []);
+  const dependsOn: number[][] = defineStories.map(() => []);
   const riskIdx = idxWith("risk");
-  for (let i = 0; i < goals.length; i++) {
+  for (let i = 0; i < defineStories.length; i++) {
     if (storyBuckets[i].includes("audit") && riskIdx >= 0 && riskIdx !== i) dependsOn[i].push(riskIdx);
     if (storyBuckets[i].includes("ui")) {
       const core = riskIdx >= 0 ? riskIdx : idxWith("auth");
       if (core >= 0 && core !== i && !dependsOn[i].includes(core)) dependsOn[i].push(core);
     }
   }
+  const signIdx = defineStories.findIndex((s) => /\bsign\b/i.test(s.title ?? s.body));
+  const onboardIdx = defineStories.findIndex((s) => /\bonboard\b/i.test(s.title ?? s.body));
+  if (signIdx >= 0 && onboardIdx >= 0 && onboardIdx !== signIdx && !dependsOn[onboardIdx].includes(signIdx)) {
+    dependsOn[onboardIdx].push(signIdx);
+  }
 
-  // Stories.
-  const storyIds: string[] = goals.map((_, i) => `distribute.story.${i + 1}`);
-  for (let i = 0; i < goals.length; i++) {
-    const g = goals[i];
+  const storyIds: string[] = defineStories.map((_, i) => `distribute.story.${i + 1}`);
+  const primaryGoal = goals.find((g) => !isPortfolioMetaGoal(g.text));
+  for (let i = 0; i < defineStories.length; i++) {
     const src = defineStories[i];
     const acs = defineAcs.filter((ac) => acAssignment.get(ac.id) === i);
     let estimate = acs.length <= 1 ? "S" : acs.length <= 3 ? "M" : "L";
     if (dependsOn[i].length) estimate = SIZE_UP[estimate];
     const deps = dependsOn[i].map((d) => storyIds[d]);
-    const body = src ? src.body : `${asActorPhrase("user")}, ${userWantClause(g.text)}.`;
+    const body = src ? src.body : `${asActorPhrase("user")}, ${userWantClause(primaryGoal?.text ?? intent.title, intent.context)}.`;
     c.el(
       "story",
       body,
-      [...(src ? [src.id] : []), g.id, ...acs.map((ac) => ac.id)],
+      [...(src ? [src.id] : []), ...(primaryGoal ? [primaryGoal.id] : []), ...acs.map((ac) => ac.id)],
       {
-        title: storyTitleFromGoal(g.text),
+        title: src?.title ?? storyTitleFromGoal(primaryGoal?.text ?? intent.title, intent.context),
         fields: {
           estimate,
           labels: storyBuckets[i].length ? storyBuckets[i] : ["general"],
@@ -470,8 +511,8 @@ export function distributePhase(ctx: PhaseCtx): PhaseArtifact {
 
   // Dependency graph.
   const edges: string[] = [];
-  for (let i = 0; i < goals.length; i++) {
-    for (const d of dependsOn[i]) edges.push(`${storyIds[i]} → ${storyIds[d]}`);
+  for (let i = 0; i < defineStories.length; i++) {
+    for (const d of dependsOn[i] ?? []) edges.push(`${storyIds[i]} → ${storyIds[d]}`);
   }
   c.el(
     "dependency_graph",
@@ -550,7 +591,7 @@ export function developPhase(ctx: PhaseCtx): PhaseArtifact {
       outOfScope: outOfScope.length
         ? outOfScope.map((o) => o.body)
         : ["Anything beyond the stated objective.", "Speculative features or scope not explicitly requested."],
-      constraints: intent.constraints.map((x) => tidy(x)),
+      constraints: engineeringConstraints(intent.constraints).map((x) => tidy(x)),
       format: "A short implementation plan, then the code changes with tests.",
       open: upstreamQuestions,
     };
