@@ -3,7 +3,6 @@ import Link from "next/link";
 const links = [
   { href: "/", label: "Intake" },
   { href: "/looper", label: "LOOPER" },
-  { href: "/north-pole", label: "NORTHPOLE" },
 ] as const;
 
 export function AppNav() {

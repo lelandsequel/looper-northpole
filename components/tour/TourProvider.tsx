@@ -172,6 +172,9 @@ export function TourProvider({ children }: { children: ReactNode }) {
             : { type: current.action },
         );
         if (!current.nextDelayMs) {
+          const postDwell = current.dwellMs ?? TOUR_DEFAULT_DWELL_MS;
+          await delay(postDwell);
+          if (cancelled || gen !== actionGen.current) return;
           setWatching(false);
           setCanAdvance(true);
         }
