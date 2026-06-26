@@ -18,20 +18,7 @@ Deterministic prioritization. Hash-chained receipts. No telemetry. No LLM in the
 
 You only need **Docker** — no Node, no npm on the host.
 
-### Option A — pull prebuilt image (fastest)
-
-```bash
-docker pull ghcr.io/lelandsequel/looper-northpole:latest
-docker run -d --name looper \
-  -p 3001:3000 \
-  -v looper-data:/data \
-  -e GATE_CODE=333333 \
-  ghcr.io/lelandsequel/looper-northpole:latest
-```
-
-Open http://localhost:3001 — unlock `333333`.
-
-### Option B — clone + docker compose (build on machine)
+### Clone + docker compose (no npm on host)
 
 ```bash
 git clone https://github.com/lelandsequel/looper-northpole.git
@@ -40,7 +27,7 @@ cp .env.example .env
 docker compose up --build -d    # needs Docker *build* — slower first time
 ```
 
-`docker compose` still uses npm **inside** the container, not on your laptop.
+npm runs **inside** the container during build — not on your laptop. Open http://localhost:3001 — unlock `333333`.
 
 ### No Docker either?
 
