@@ -1,10 +1,12 @@
+import { apiPath } from "@/lib/api-path";
+
 import type { GateId } from "./gates";
 
 export async function submitGateIntakeViaApi(
   gateId: GateId,
   values: Record<string, string>,
 ): Promise<{ initiativeId: string; funding: string; score: number }> {
-  const res = await fetch("/api/intake", {
+  const res = await fetch(apiPath("/api/intake"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ gate: gateId, values }),

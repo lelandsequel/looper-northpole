@@ -44,11 +44,13 @@ export function epicStoriesMarkdown(payload: JiraEmitPayload): string {
     L.push("");
     L.push(s.description);
     L.push("");
-    L.push("**Acceptance criteria:**");
-    for (const ac of s.acceptanceCriteria) {
-      L.push(`- ${ac}`);
+    if (s.acceptanceCriteria.length) {
+      L.push("**Acceptance criteria:**");
+      for (const ac of s.acceptanceCriteria) {
+        L.push(`- ${ac}`);
+      }
+      L.push("");
     }
-    L.push("");
   }
 
   L.push("---");

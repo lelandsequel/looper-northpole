@@ -1,3 +1,5 @@
+import { apiPath } from "@/lib/api-path";
+
 export type LooperSpecView = {
   initiativeId: string;
   cosmic: {
@@ -33,7 +35,7 @@ export type LooperSpecView = {
 };
 
 export async function runSpecViaApi(initiativeId: string): Promise<LooperSpecView> {
-  const res = await fetch("/api/looper/spec", {
+  const res = await fetch(apiPath("/api/looper/spec"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ initiativeId }),

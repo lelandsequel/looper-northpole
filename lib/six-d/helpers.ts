@@ -23,6 +23,96 @@ export const lower1 = (s: string): string => {
   return t ? t[0].toLowerCase() + t.slice(1) : "";
 };
 
+/** Strip adapter/goal boilerplate so stories read like tickets, not pipeline echoes. */
+const GOAL_PREFIX_RES: RegExp[] = [
+  /^deliver the stated outcome:\s*/i,
+  /^capture the revenue impact:\s*/i,
+  /^improve the service outcome:\s*/i,
+  /^deliver the internal capability:\s*/i,
+  /^reduce the risk \/ meet the mandate:\s*/i,
+  /^unlock the strategic option:\s*/i,
+  /^deliver:\s*/i,
+  /^reach\s+/i,
+  /^serve\s+/i,
+  /^(revenue|customer service|delivery|risk|strategic optionality) focus\.?\s*/i,
+];
+
+export const goalNeedPhrase = (text: string): string => {
+  const original = stripPeriod(String(text ?? "").trim());
+  let t = original;
+  for (const re of GOAL_PREFIX_RES) {
+    t = t.replace(re, "");
+  }
+  t = t.trim();
+  if (t) return lower1(t);
+  if (/focus$/i.test(original)) {
+    return lower1(original.replace(/\bfocus$/i, "capabilities"));
+  }
+  return lower1(original) || "the stated capability";
+};
+
+const GOAL_HAS_VERB =
+  /\b(build|launch|enable|deliver|implement|create|sign|onboard|validate|scale|meet|confirm|preserve)\b/i;
+
+/** Ticket-style story title — imperative when the goal is a bare noun phrase. */
+export const storyTitleFromGoal = (text: string): string => {
+  const need = goalNeedPhrase(text);
+  if (GOAL_HAS_VERB.test(need)) return tidy(stripPeriod(cap(need)));
+  return tidy(stripPeriod(cap(`Launch ${need}`)));
+};
+
+/** "a" vs "an" for user-story actors. */
+export const indefiniteArticle = (word: string): string => {
+  const w = word.trim().toLowerCase();
+  if (!w) return "a";
+  if (/^(hour|honest)/.test(w)) return "an";
+  return /^[aeiou]/.test(w) ? "an" : "a";
+};
+
+export const asActorPhrase = (actor: string): string => {
+  const a = actor.trim().toLowerCase() || "user";
+  return `As ${indefiniteArticle(a)} ${a}`;
+};
+
+/** "I want …" clause with correct infinitive when the need starts with a verb. */
+export const userWantClause = (text: string): string => {
+  const need = goalNeedPhrase(text);
+  if (/^(validate|scale|meet|deliver|confirm|preserve)\b/i.test(need)) {
+    return `I want to ${need}`;
+  }
+  if (GOAL_HAS_VERB.test(need)) return `I want to ${need}`;
+  return `I want to launch ${need}`;
+};
+
+/** Acceptance text for adapter-shaped goals (deterministic, no invention). */
+export const acceptanceForGoal = (goalText: string, goalIndex: number, contextText: string): string => {
+  const raw = String(goalText ?? "").trim();
+  if (/^scale to /i.test(raw)) {
+    const target = raw.replace(/^scale to /i, "");
+    return tidy(`The solution supports ${target} within documented reach assumptions.`);
+  }
+  if (/validate revenue/i.test(raw)) {
+    return "Revenue impact and margin guardrails are validated against sourced evidence before release.";
+  }
+  if (/validate customer service/i.test(raw)) {
+    return "Customer service outcomes and SLAs are validated against pilot metrics before release.";
+  }
+  if (/internal capability/i.test(raw)) {
+    return "The internal capability is delivered with an operational handoff documented for support.";
+  }
+  if (/regulatory and audit/i.test(raw)) {
+    return "Regulatory and audit obligations are met with traceable controls before release.";
+  }
+  if (/strategic option/i.test(raw)) {
+    return "Strategic option value is preserved without over-building beyond the stated scope.";
+  }
+  if (goalIndex === 0 && contextText) {
+    const desc = sentences(contextText).filter((s) => s.length > 20 && !isNormative(s));
+    if (desc.length) return tidy(desc[0]);
+  }
+  return tidy(stripPeriod(goalNeedPhrase(raw)));
+};
+
 export const slugify = (s: string): string =>
   s
     .toLowerCase()

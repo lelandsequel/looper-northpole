@@ -3,6 +3,7 @@ import type { ArtifactElement } from "@/lib/six-d/types";
 
 import type { JiraEmitPayload, JiraEpic, JiraStory } from "./types";
 import { JIRA_EMIT_SCHEMA } from "./types";
+import { polishJiraPayload } from "./voice";
 
 function distributePhase(run: CosmicRun) {
   return run.manifest.artifacts.find((a) => a.phase === "distribute");
@@ -57,12 +58,12 @@ export function extractJiraPayload(
     };
   });
 
-  return {
+  return polishJiraPayload({
     schema: JIRA_EMIT_SCHEMA,
     initiativeId,
     specReceipt,
     cosmicRunHash: run.runHash,
     epic,
     stories,
-  };
+  });
 }

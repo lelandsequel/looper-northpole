@@ -16,12 +16,17 @@ import {
   cap,
   exclusionOf,
   isNormative,
+  acceptanceForGoal,
+  asActorPhrase,
+  goalNeedPhrase,
   lower1,
   mandatedMechanism,
   numbersWithUnits,
   sentences,
   stripPeriod,
+  storyTitleFromGoal,
   tidy,
+  userWantClause,
 } from "./helpers";
 import {
   type ArtifactElement,
@@ -176,32 +181,41 @@ export function definePhase(ctx: PhaseCtx): PhaseArtifact {
     );
   }
 
-  // User stories — one per goal, template slots quote the source.
+  // User stories — one per goal, short ticket voice.
   const actor = actors[0] ?? "user";
   for (const g of goals) {
     c.el(
       "story",
-      `As a ${actor}, I need: ${lower1(stripPeriod(g.text))} — so that "${intent.title}" delivers its intended outcome.`,
+      `${asActorPhrase(actor)}, ${userWantClause(g.text)}.`,
       [g.id, "intent.title", ...(actors[0] ? [actorRef(ctx, actor)] : [])],
-      { title: cap(stripPeriod(g.text)), fields: { actor } },
+      { title: storyTitleFromGoal(g.text), fields: { actor } },
     );
   }
 
-  // Acceptance criteria.
-  // a) one per goal — observable restatement, no invention.
-  for (const g of goals) {
+  // Acceptance criteria — description-derived for primary goal; shaped text for meta goals.
+  const contextText = contextAtoms[0]?.text ?? intent.context;
+  for (let i = 0; i < goals.length; i++) {
+    const g = goals[i];
+    const then = acceptanceForGoal(g.text, i, contextText);
     c.el(
       "acceptance_criterion",
-      `Given the feature is active in the pilot slice, when the covered workflow runs, then: ${tidy(g.text)}`,
-      [g.id],
+      then,
+      [g.id, ...(i === 0 && contextAtoms[0] ? [contextAtoms[0].id] : [])],
       {
         fields: {
-          given: "the feature is active in the pilot slice",
+          given: "the feature is in the pilot scope",
           when: "the covered workflow runs",
-          then: tidy(g.text),
+          then,
         },
       },
     );
+  }
+  // Extra ACs from description sentences on the primary story (when not normative).
+  if (goals.length && contextAtoms[0]) {
+    const extra = sentences(contextAtoms[0].text).filter((s) => s.length > 20 && !isNormative(s));
+    for (let si = 1; si < extra.length; si++) {
+      c.el("acceptance_criterion", tidy(extra[si]), [contextAtoms[0].id, goals[0].id]);
+    }
   }
   // b) normative sentences in the context ("must / should / require…").
   for (const s of contextAtoms) {
@@ -386,12 +400,19 @@ export function distributePhase(ctx: PhaseCtx): PhaseArtifact {
   const defineStories = phaseEls(ctx, "define", "story");
   const defineAcs = phaseEls(ctx, "define", "acceptance_criterion");
   const objective = phaseEls(ctx, "define", "objective")[0];
+  const problem = phaseEls(ctx, "define", "problem_statement")[0];
 
-  // Epic.
+  // Epic — problem statement when available (not objective mashed into context).
+  const epicBody = problem
+    ? problem.body
+    : `${objective ? objective.body : tidy(intent.title)}${contextAtoms[0] ? ` ${tidy(contextAtoms[0].text)}` : ""}`;
   c.el(
     "epic",
-    `${objective ? objective.body : tidy(intent.title)}${contextAtoms[0] ? ` ${tidy(contextAtoms[0].text)}` : ""}`,
-    [...(objective ? [objective.id] : ["intent.title"]), ...(contextAtoms[0] ? [contextAtoms[0].id] : [])],
+    epicBody,
+    [
+      ...(problem ? [problem.id] : objective ? [objective.id] : ["intent.title"]),
+      ...(contextAtoms[0] && !problem ? [contextAtoms[0].id] : []),
+    ],
     { title: intent.title },
   );
 
@@ -430,18 +451,13 @@ export function distributePhase(ctx: PhaseCtx): PhaseArtifact {
     let estimate = acs.length <= 1 ? "S" : acs.length <= 3 ? "M" : "L";
     if (dependsOn[i].length) estimate = SIZE_UP[estimate];
     const deps = dependsOn[i].map((d) => storyIds[d]);
-    const body = [
-      src ? src.body : `Deliver: ${tidy(g.text)}`,
-      "",
-      "Acceptance:",
-      ...acs.map((ac) => `- ${ac.body}`),
-    ].join("\n");
+    const body = src ? src.body : `${asActorPhrase("user")}, ${userWantClause(g.text)}.`;
     c.el(
       "story",
       body,
       [...(src ? [src.id] : []), g.id, ...acs.map((ac) => ac.id)],
       {
-        title: cap(stripPeriod(g.text)),
+        title: storyTitleFromGoal(g.text),
         fields: {
           estimate,
           labels: storyBuckets[i].length ? storyBuckets[i] : ["general"],

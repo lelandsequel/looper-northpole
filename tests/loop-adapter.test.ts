@@ -47,37 +47,38 @@ test("forward: initiativeToIntent maps title/context/goals/constraints per contr
   // title ← initiative.title
   assert.equal(intent.title, i.title);
 
-  // context ← description + " Outcome: " + outcome + " (Area … · Sponsor …)"
-  assert.equal(
-    intent.context,
-    `${i.description} Outcome: ${i.outcome} (Area ${i.area} · Sponsor ${i.sponsor})`,
-  );
+  // context ← description only (metadata lives in constraints)
+  assert.equal(intent.context, i.description.trim());
+  assert.ok(intent.constraints.some((c) => c.includes(`Outcome: ${i.outcome}`)));
+  assert.ok(intent.constraints.some((c) => c.includes(i.area)));
 
-  // goals ← [outcome goal] + [valueType goal] + [reach-serve goal]
+  // goals ← outcome + value focus + reach (no triple restatement)
   assert.equal(intent.goals.length, 3);
-  assert.ok(intent.goals[0].includes(i.outcome), "goal 1 carries the outcome");
-  // HL-003 is Risk-Compliance → "Reduce the risk / meet the mandate"
-  assert.match(intent.goals[1], /reduce the risk \/ meet the mandate/i);
-  assert.equal(intent.goals[2], `Serve ${i.reach.value} ${i.reach.unit}`);
+  assert.equal(intent.goals[0], i.outcome);
+  assert.match(intent.goals[1], /regulatory and audit/i);
+  assert.match(intent.goals[2], /scale to/i);
 
-  // constraints ← mandate first (HL-003 has one), then channel/talent/budget.
-  assert.equal(intent.constraints[0], `Regulatory mandate — ${i.mandateCitation}`);
+  // constraints ← metadata, then mandate (HL-003 has one), channel/talent/budget.
+  assert.equal(
+    intent.constraints.find((c) => c.startsWith("Regulatory mandate")),
+    `Regulatory mandate — ${i.mandateCitation}`,
+  );
   assert.ok(intent.constraints.includes(`Channel: ${i.businessImpact}`));
   assert.ok(intent.constraints.includes(`Talent: ${i.talentProfile}`));
   assert.ok(intent.constraints.some((c) => c.startsWith("Budget cycle:")));
 });
 
-test("forward: the 5 value types each map to their specified goal phrasing", () => {
+test("forward: the 5 value types each map to a short focus goal", () => {
   const cases: Array<[string, RegExp]> = [
-    ["HL-001", /capture the revenue impact/i], // REVENUE
-    ["HL-004", /improve the service outcome/i], // SERVICE
-    ["HL-005", /deliver the internal capability/i], // ENABLER
-    ["HL-003", /reduce the risk \/ meet the mandate/i], // RISK
-    ["HL-008", /unlock the strategic option/i], // OPTIONALITY
+    ["HL-001", /revenue impact/i],
+    ["HL-004", /customer service outcomes/i],
+    ["HL-005", /internal capability/i],
+    ["HL-003", /regulatory and audit/i],
+    ["HL-008", /strategic option/i],
   ];
   for (const [id, re] of cases) {
     const intent = initiativeToIntent(byId(INITIATIVES, id));
-    assert.match(intent.goals[1], re, `${id} value-type goal`);
+    assert.match(intent.goals[1], re, `${id} value-type story goal`);
   }
 });
 

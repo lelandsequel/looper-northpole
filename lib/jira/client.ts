@@ -1,7 +1,11 @@
+import { apiPath } from "@/lib/api-path";
+
 import type { JiraEmitOutcome, JiraVerifyResult } from "./types";
 
 export async function previewJiraViaApi(initiativeId: string): Promise<JiraVerifyResult> {
-  const res = await fetch(`/api/jira/emit/preview?initiativeId=${encodeURIComponent(initiativeId)}`);
+  const res = await fetch(
+    `${apiPath("/api/jira/emit/preview")}?initiativeId=${encodeURIComponent(initiativeId)}`,
+  );
   const data = (await res.json()) as { ok: boolean; preview?: JiraVerifyResult; error?: string };
   if (!res.ok || !data.ok || !data.preview) {
     throw new Error(data.error ?? `preview failed (${res.status})`);
@@ -13,7 +17,7 @@ export async function emitJiraViaApi(
   initiativeId: string,
   adapter: "file" | "http" = "file",
 ): Promise<JiraEmitOutcome> {
-  const res = await fetch("/api/jira/emit", {
+  const res = await fetch(apiPath("/api/jira/emit"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ initiativeId, adapter }),

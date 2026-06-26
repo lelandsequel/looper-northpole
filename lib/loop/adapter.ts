@@ -26,23 +26,19 @@ import type { CosmicRun } from "@/lib/six-d/cosmic";
 import type { ArtifactElement, PhaseArtifact } from "@/lib/six-d/types";
 import type { Initiative } from "@/lib/agility";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Value-type → outcome-goal phrasing. The 5 strategic levers Agility tunes, each
-// turned into a concrete 6D goal sentence (Pan-specified mapping).
-// Keyed by the canonical VALUE_TYPES *labels* from lib/agility/types.mjs.
-// ─────────────────────────────────────────────────────────────────────────────
-const VALUE_TYPE_GOAL: Record<string, (i: Initiative) => string> = {
-  "Direct Customer Revenue": (i) =>
-    `Capture the revenue impact: ${i.outcome}`,
-  "Direct Customer Service": (i) =>
-    `Improve the service outcome: ${i.outcome}`,
-  "Internal Enabler": (i) =>
-    `Deliver the internal capability: ${i.outcome}`,
-  "Risk-Compliance": (i) =>
-    `Reduce the risk / meet the mandate: ${i.outcome}`,
-  "Strategic-Optionality": (i) =>
-    `Unlock the strategic option: ${i.outcome}`,
+// Secondary goals — ticket-shaped slices, not pipeline boilerplate.
+const VALUE_TYPE_STORY: Record<string, string> = {
+  "Direct Customer Revenue": "Validate revenue impact and margin guardrails",
+  "Direct Customer Service": "Validate customer service outcomes and SLAs",
+  "Internal Enabler": "Deliver the internal capability with operational handoff",
+  "Risk-Compliance": "Meet regulatory and audit obligations",
+  "Strategic-Optionality": "Preserve strategic option value without over-building",
 };
+
+function reachGoal(value: number, unit: string): string {
+  const n = value >= 1000 ? value.toLocaleString("en-US") : String(value);
+  return `Scale to ${n} ${unit}`;
+}
 
 // ═════════════════════════ FORWARD — decide → specify ═══════════════════════
 //
@@ -56,21 +52,21 @@ export function initiativeToIntent(initiative: Initiative): RawIntent {
   // title ← initiative.title
   const title = i.title;
 
-  // context ← description + outcome + (area · sponsor)
-  const context =
-    `${i.description} Outcome: ${i.outcome} ` +
-    `(Area ${i.area} · Sponsor ${i.sponsor})`;
+  // context ← description only (problem statement — no metadata soup)
+  const context = i.description.trim();
 
-  // goals ← [outcome as outcome-goal] + [valueType-driven goal] + [reach-serve goal]
-  const valueTypeGoal = VALUE_TYPE_GOAL[i.valueType];
+  // goals ← outcome + value slice + reach slice (distinct, ticket-shaped)
   const goals: string[] = [
-    `Deliver the stated outcome: ${i.outcome}`,
-    valueTypeGoal ? valueTypeGoal(i) : `Deliver: ${i.outcome}`,
-    `Serve ${i.reach.value} ${i.reach.unit}`,
+    i.outcome,
+    VALUE_TYPE_STORY[i.valueType] ?? "Validate delivery outcomes",
+    reachGoal(i.reach.value, i.reach.unit),
   ];
 
-  // constraints ← [mandate?] + [channel] + [dependsOn?] + [talent] + [budget cycle?]
-  const constraints: string[] = [];
+  // constraints ← portfolio metadata + mandate/channel/deps/talent/budget
+  const constraints: string[] = [
+    `Outcome: ${i.outcome}`,
+    `Area: ${i.area} · Sponsor: ${i.sponsor}`,
+  ];
   if (i.mandate && i.mandateCitation) {
     constraints.push(`Regulatory mandate — ${i.mandateCitation}`);
   }

@@ -1,7 +1,9 @@
+import { apiPath } from "@/lib/api-path";
+
 import type { NorthPoleRunView } from "./client-view";
 
 export async function runBuildViaApi(initiativeId: string): Promise<NorthPoleRunView> {
-  const res = await fetch("/api/north-pole/build", {
+  const res = await fetch(apiPath("/api/north-pole/build"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ initiativeId }),

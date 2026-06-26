@@ -3,16 +3,18 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+import { apiPath } from "@/lib/api-path";
+
 export function UnlockForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/looper";
+  const next = params.get("next") ?? apiPath("/looper");
   const [code, setCode] = useState("");
   const [err, setErr] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/unlock", {
+    const res = await fetch(apiPath("/api/unlock"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
