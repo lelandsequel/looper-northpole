@@ -5,6 +5,14 @@ import { DATA_DIR, DB_PATH } from "./paths";
 
 let db: Database.Database | null = null;
 
+/** Close the singleton — required before wiping DB files in tests. */
+export function closeDb(): void {
+  if (db) {
+    db.close();
+    db = null;
+  }
+}
+
 export function getDb(): Database.Database {
   if (db) return db;
   fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -62,6 +70,28 @@ function migrate(database: Database.Database) {
     CREATE TABLE IF NOT EXISTS strata_audits (
       id TEXT PRIMARY KEY,
       query_hash TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS spec_docs (
+      id TEXT PRIMARY KEY,
+      initiative_id TEXT NOT NULL,
+      spec_receipt TEXT NOT NULL,
+      run_hash TEXT NOT NULL,
+      emit_hash TEXT NOT NULL,
+      doc_dir TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS jira_emits (
+      id TEXT PRIMARY KEY,
+      initiative_id TEXT NOT NULL,
+      spec_receipt TEXT NOT NULL,
+      emit_hash TEXT NOT NULL,
+      adapter TEXT NOT NULL,
+      status TEXT NOT NULL,
       payload TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );

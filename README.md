@@ -10,8 +10,26 @@ Deterministic prioritization. Hash-chained receipts. No telemetry. No LLM in the
 
 | Surface | Route | What it does |
 |---------|-------|--------------|
-| **LOOPER** | `/looper` | JSON intake → refuse bad shape → RICE+NPV rank → FUNDED/BENCHED queue |
-| **NORTHPOLE** | `/north-pole` | Funded items → 6D spec → build gate demo → re-prioritize |
+| **Intake gates** | `/` → `/intake/[gate]` | Multi-entry front doors → same engine (`lib/looper/gates/`) |
+| **LOOPER** | `/looper` | Ranked queue, guided/JSON intake, 6D spec → epic/story docs |
+| **NORTHPOLE** | `/north-pole` | Build gate demo + STRATA audit (optional; spec lives on LOOPER) |
+
+## Docker pilot (recommended)
+
+Persistent SQLite + spec docs on a volume. Guided intake form on `/looper`.
+
+```bash
+cp .env.example .env          # set GATE_CODE for your test group
+npm run docker:up             # http://localhost:3001 (LOOPER_PORT=3000 if 3000 is free)
+npm run docker:logs           # follow logs
+```
+
+First boot seeds the portfolio. Data survives restarts in the `looper-data` volume.
+
+```bash
+npm run docker:down           # stop
+docker volume rm looper-northpole_looper-data   # wipe pilot data
+```
 
 ## Clone and verify (anti-timebomb packet)
 
@@ -50,7 +68,8 @@ What you're proving:
 | Dedup ("third calculator") | ✅ Jaccard cluster hold |
 | RICE + 3yr NPV scoring | ✅ Deterministic receipts |
 | NOW / funded / benched queue | ✅ Capacity allocate |
-| Epic/story emission to Jira | 🔜 adapter layer (verification-first) |
+| Epic/story docs from spec | ✅ `lib/looper/docs.ts` → `data/spec-docs/` |
+| Epic/story emission to Jira | ✅ adapter (`lib/jira/`) — optional, not in LOOPER UI |
 
 LOOPER is what you described in the room: **one door in, scored rank out, every decision receipted.**
 
@@ -85,6 +104,10 @@ curl -X POST http://localhost:3000/api/build \
 | `GET /api/build/contract` | Agent request/response schema (no unlock) |
 | `POST /api/build/agent-stub` | Reference agent for integration tests |
 | `POST /api/build` | Full NORTHPOLE run (`builder`: `demo` \| `agent`) |
+| `POST /api/looper/spec` | Funded initiative → 6D COSMIC spec → epic/story markdown docs |
+| `GET /api/looper/spec?initiativeId=` | Latest stored spec run + doc paths |
+| `GET /api/jira/emit/preview?initiativeId=` | Preview verified epic/story payload (refuses if not ticket-ready) |
+| `POST /api/jira/emit` | Emit verified payload (`adapter`: `file` \| `http`) |
 
 Agent contract: POST JSON `BuildBrief` → `{ ok, modules: { "priceQuote.ts": "..." } }`.
 On REFUSE, NORTHPOLE re-posts with `resolve[]` from failed blocking criteria.
@@ -93,7 +116,7 @@ Still to generalize beyond the HL-002 `priceQuote` demo:
 
 1. COSMIC-sourced work orders (`storyFromSpec` → probes)
 2. Multi-file repo builds + `npm test` probes
-3. LOOPER epic/story emit with verification layer
+3. ~~LOOPER epic/story emit with verification layer~~ ✅ `lib/jira/` — file + HTTP adapters
 
 ## Unlock gate (demo only)
 
@@ -115,8 +138,9 @@ Visit any route → `/unlock`. Default code `333333` (override via `GATE_CODE` i
 |---------|---------|
 | `npm run setup` | Install + seed + test (first clone) |
 | `npm run dev` | Local dev server |
-| `npm run test` | 39 unit + E2E tests |
+| `npm run test` | 54 unit + E2E tests |
 | `npm run prioritize` | CLI ranked queue from seed |
+| `npm run docker:up` | Build + run Docker pilot (`docker-compose.yml`) |
 
 ## CI
 

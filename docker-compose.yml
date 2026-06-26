@@ -1,0 +1,17 @@
+services:
+  looper:
+    build: .
+    ports:
+      - "${LOOPER_PORT:-3001}:3000"
+    environment:
+      LOOPER_DATA_DIR: /data
+      LOOPER_CAPACITY: ${LOOPER_CAPACITY:-16}
+      GATE_CODE: ${GATE_CODE:-333333}
+      DEMO_PUBLIC: ${DEMO_PUBLIC:-0}
+      NEXT_PUBLIC_DEMO_PUBLIC: ${NEXT_PUBLIC_DEMO_PUBLIC:-0}
+    volumes:
+      - looper-data:/data
+    restart: unless-stopped
+
+volumes:
+  looper-data:

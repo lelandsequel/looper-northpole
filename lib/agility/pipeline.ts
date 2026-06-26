@@ -3,7 +3,8 @@ import { appendLedgerEvent } from "@/lib/store/ledger";
 import { listInitiatives, replaceInitiatives } from "@/lib/store/initiatives";
 import type { Initiative, PrioritizeResult } from "@/lib/agility/types";
 
-export const DEFAULT_CAPACITY = 12;
+/** Team slots for funded work. Override via LOOPER_CAPACITY (pilot default 16). */
+export const DEFAULT_CAPACITY = Number(process.env.LOOPER_CAPACITY) || 12;
 
 export function runPrioritize(
   initiatives: Initiative[],

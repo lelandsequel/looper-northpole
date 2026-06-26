@@ -10,15 +10,20 @@ import test from "node:test";
 
 import { loadAndPrioritize } from "../lib/agility/pipeline";
 import { listFundedQueue, runNorthPoleBuild } from "../lib/northpole/pipeline";
+import { closeDb } from "../lib/store/db";
 import { verifyLedger } from "../lib/store/ledger";
 
 test("E2E: seed → funded queue → 6D COSMIC + Pan gate build → ledger verifies", async () => {
-  const dataDir = path.join(process.cwd(), "data");
-  for (const f of ["looper-northpole.db", "looper-northpole.db-wal", "looper-northpole.db-shm"]) {
-    fs.rmSync(path.join(dataDir, f), { force: true });
-  }
+  closeDb();
+  const dataDir = path.join(process.cwd(), "data", `e2e-${Date.now()}`);
+  process.env.LOOPER_DATA_DIR = dataDir;
+  fs.mkdirSync(dataDir, { recursive: true });
 
-  execSync("node scripts/seed.mjs", { cwd: process.cwd(), stdio: "pipe" });
+  execSync("node scripts/seed.mjs", {
+    cwd: process.cwd(),
+    stdio: "pipe",
+    env: { ...process.env, LOOPER_DATA_DIR: dataDir },
+  });
 
   const queue = loadAndPrioritize();
   assert.ok(queue.funded.length > 0, "seed should produce funded initiatives");

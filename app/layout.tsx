@@ -6,7 +6,7 @@ import { TourAutoStart, TourProvider } from "@/components/tour/TourProvider";
 
 export const metadata: Metadata = {
   title: "LOOPER + NORTHPOLE",
-  description: "Agility intake → 6D COSMIC build workshop. Every number shows its work.",
+  description: "LOOPER — intake → rank → 6D spec → epic/story docs. Every number shows its work.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

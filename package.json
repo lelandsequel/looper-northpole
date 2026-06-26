@@ -11,7 +11,11 @@
     "test": "tsx --test tests/*.test.ts",
     "seed": "node scripts/seed.mjs",
     "setup": "bash scripts/setup.sh",
-    "prioritize": "node scripts/prioritize.mjs"
+    "prioritize": "node scripts/prioritize.mjs",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f looper"
   },
   "dependencies": {
     "better-sqlite3": "^11.9.1",

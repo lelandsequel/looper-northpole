@@ -6,6 +6,8 @@ import { FundingPill } from "@/components/FundingPill";
 import { ReceiptBar } from "@/components/ReceiptBar";
 import { LOOPER_TOUR_EVENT, type LooperTourAction } from "@/lib/tour/events";
 import type { NorthPoleRunView } from "@/lib/northpole/client-view";
+import { emitJiraViaApi, previewJiraViaApi } from "@/lib/jira/client";
+import type { JiraEmitOutcome, JiraVerifyResult } from "@/lib/jira/types";
 import { runBuildViaApi } from "@/lib/northpole/run-build-client";
 import { getNorthPoleState } from "./actions";
 import type { Initiative } from "@/lib/agility/types";
@@ -18,11 +20,16 @@ export function NorthPoleDashboard({
   const [funded, setFunded] = useState(initial.funded);
   const [selected, setSelected] = useState<Initiative | null>(null);
   const [run, setRun] = useState<NorthPoleRunView | null>(null);
+  const [jiraPreview, setJiraPreview] = useState<JiraVerifyResult | null>(null);
+  const [jiraEmit, setJiraEmit] = useState<JiraEmitOutcome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [jiraPending, startJira] = useTransition();
 
   function handleBuild(id: string) {
     setError(null);
+    setJiraPreview(null);
+    setJiraEmit(null);
     start(async () => {
       try {
         const result = await runBuildViaApi(id);
@@ -31,6 +38,34 @@ export function NorthPoleDashboard({
         setFunded(refreshed.funded);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Build failed");
+      }
+    });
+  }
+
+  function handleJiraPreview(id: string) {
+    setError(null);
+    startJira(async () => {
+      try {
+        const preview = await previewJiraViaApi(id);
+        setJiraPreview(preview);
+        setJiraEmit(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Jira preview failed");
+      }
+    });
+  }
+
+  function handleJiraEmit(id: string) {
+    setError(null);
+    startJira(async () => {
+      try {
+        const outcome = await emitJiraViaApi(id, "file");
+        setJiraEmit(outcome);
+        if (outcome.payload) {
+          setJiraPreview({ ok: true, payload: outcome.payload, emitHash: outcome.emitHash! });
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Jira emit failed");
       }
     });
   }
@@ -179,6 +214,67 @@ export function NorthPoleDashboard({
                 </div>
               )}
             </div>
+          </Stage>
+
+          <Stage title="Stage 6: Jira emit (verification-first)" tourId="jira">
+            <p className="text-sm text-muted">
+              Extract epic + stories from the sealed 6D spec. Refuses if AURORA blocking issues or
+              missing acceptance criteria. Default adapter writes verified JSON to{" "}
+              <span className="font-mono text-ink">data/jira-emits/</span>.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => handleJiraPreview(run.initiativeId)}
+                disabled={jiraPending}
+                className="rounded border border-border px-3 py-1 font-mono text-xs hover:bg-border/30 disabled:opacity-50"
+              >
+                {jiraPending ? "Checking…" : "Preview emit"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleJiraEmit(run.initiativeId)}
+                disabled={jiraPending || (jiraPreview !== null && !jiraPreview.ok)}
+                className="rounded bg-accent/20 px-3 py-1 font-mono text-xs text-accent hover:bg-accent/30 disabled:opacity-50"
+              >
+                {jiraPending ? "Emitting…" : "Emit to file"}
+              </button>
+            </div>
+
+            {jiraPreview && !jiraPreview.ok && (
+              <div className="mt-3 rounded border border-refused/40 bg-refused/10 p-3 font-mono text-xs text-refused">
+                <div className="font-medium">REFUSED — not ticket-ready</div>
+                <ul className="mt-2 list-inside list-disc space-y-1">
+                  {jiraPreview.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {jiraPreview?.ok && (
+              <div className="mt-3 space-y-2 font-mono text-xs text-muted">
+                <div>
+                  Epic: <span className="text-ink">{jiraPreview.payload.epic.title}</span> ·{" "}
+                  {jiraPreview.payload.stories.length} stor
+                  {jiraPreview.payload.stories.length === 1 ? "y" : "ies"}
+                </div>
+                <ReceiptBar label="emit hash" sha={jiraPreview.emitHash} />
+                <ReceiptBar label="spec receipt" sha={jiraPreview.payload.specReceipt} />
+              </div>
+            )}
+
+            {jiraEmit?.status === "emitted" && (
+              <div className="mt-3 rounded border border-accent/30 bg-accent/5 p-3 font-mono text-xs">
+                <div className="text-accent">Emitted via {jiraEmit.adapter}</div>
+                {typeof jiraEmit.artifact === "string" && (
+                  <div className="mt-1 text-muted">{jiraEmit.artifact}</div>
+                )}
+                {jiraEmit.ledgerSha && (
+                  <ReceiptBar label="ledger" sha={jiraEmit.ledgerSha} seq={jiraEmit.ledgerSeq} />
+                )}
+              </div>
+            )}
           </Stage>
         </div>
       )}

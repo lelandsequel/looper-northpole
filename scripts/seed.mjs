@@ -4,7 +4,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { INITIATIVES } from "../lib/agility/seed/initiatives.mjs";
 
-const dataDir = path.join(process.cwd(), "data");
+const dataDir = process.env.LOOPER_DATA_DIR ?? path.join(process.cwd(), "data");
 fs.mkdirSync(dataDir, { recursive: true });
 const db = new Database(path.join(dataDir, "looper-northpole.db"));
 
