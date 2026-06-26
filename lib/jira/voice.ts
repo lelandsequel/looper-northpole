@@ -18,7 +18,7 @@ const USER_STORY_RE =
   /^As (?:a |an )?(.+?), I need: (.+?) — so that "(.+)" delivers its intended outcome\.?$/;
 
 const USER_STORY_WANT_RE =
-  /^As (?:a |an )?(.+?), I want (.+?)\.?$/;
+  /^As (?:a |an )?(.+?), I want (?:to )?(.+?)\.?$/;
 
 const PILOT_AC_RE =
   /^Given the feature is active in the pilot slice, when the covered workflow runs, then:\s*/i;
@@ -54,7 +54,7 @@ export function polishStoryDescription(description: string): string {
   const modern = body.match(USER_STORY_WANT_RE);
   if (modern) {
     const [, actor, need] = modern;
-    return `${asActorPhrase(actor.trim())}, ${userWantClause(need)}.`;
+    return `${asActorPhrase(actor.trim())}, I want to ${need.trim()}.`;
   }
 
   const brokenArticle = body.match(/^As a ([aeiou]\w+),/i);
