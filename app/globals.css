@@ -7,6 +7,6 @@
 }
 
 body {
-  @apply bg-surface text-ink antialiased;
+  @apply bg-background text-ink antialiased;
   font-family: Inter, system-ui, sans-serif;
 }

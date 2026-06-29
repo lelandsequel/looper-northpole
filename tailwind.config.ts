@@ -5,21 +5,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        surface: "#0c0e15",
-        ink: "#e7e7ea",
-        muted: "#9aa0ac",
-        accent: "#9fb4ff",
-        border: "#2a2d3a",
-        funded: "#5fd38d",
-        benched: "#e8b84a",
-        refused: "#f08a8a",
+        background: "#ffffff",
+        surface: "#f4f4f4",
+        ink: "#002244",
+        muted: "#666666",
+        accent: "#117ACA",
+        border: "#d1d1d1",
+        funded: "#00684a",
+        benched: "#f59e0b",
+        refused: "#b91c1c",
       },
       fontFamily: {
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        mono: ["IBM Plex Mono", "monospace"],
+        sans: ["Inter", "sans-serif"],
       },
     },
   },
   plugins: [],
 };
-
 export default config;
