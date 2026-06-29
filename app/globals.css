@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-background text-ink antialiased;
+  background-color: #ffffff !important;
+  color: #002244 !important;
   font-family: Inter, system-ui, sans-serif;
 }
