@@ -3,7 +3,10 @@ export type LooperTourAction =
   | { type: "submit-intake" }
   | { type: "load-sample" }
   | { type: "select-first-funded" }
-  | { type: "run-build"; initiativeId?: string };
+  | { type: "run-build"; initiativeId?: string }
+  | { type: "wizard-fill" }
+  | { type: "wizard-next" }
+  | { type: "wizard-submit" };
 
 export const LOOPER_TOUR_EVENT = "looper-tour-action";
 

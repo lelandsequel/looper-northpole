@@ -169,7 +169,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
         dispatchTourAction(
           current.action === "run-build"
             ? { type: "run-build" }
-            : { type: current.action },
+            : { type: current.action as any }
         );
         if (!current.nextDelayMs) {
           const postDwell = current.dwellMs ?? TOUR_DEFAULT_DWELL_MS;

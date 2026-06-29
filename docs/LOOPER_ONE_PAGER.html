@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPMC // Home Lending // LOOPER: Deterministic Prioritization OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0A090F;
+            color: #c7c4d5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .font-mono { font-family: 'IBM Plex Mono', monospace; }
+        .grid-bg {
+            background-image:
+                linear-gradient(to right, rgba(48, 45, 66, 0.25) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(48, 45, 66, 0.25) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        h1 { font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.04em; }
+        .section-title { font-family: 'IBM Plex Mono', monospace; color: #8c88a8; font-weight: 600; letter-spacing: 0.05em; }
+        .highlight { color: #ebe9f7; }
+        .accent-text { color: #a9a3d4; }
+        .refused-text { color: #ff7b7b; }
+        code {
+            background-color: rgba(76, 71, 107, 0.3);
+            color: #c7c4d5;
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .flow-step {
+            background-color: #181622;
+            border: 1px solid #302d42;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="grid-bg">
+    <div class="max-w-5xl mx-auto p-8 md:p-16">
+        <header class="mb-12 text-center">
+            <p class="font-mono text-xs tracking-widest text-accent-text mb-4">JPMORGAN CHASE &nbsp;&nbsp;//&nbsp;&nbsp; HOME LENDING TECHNOLOGY &nbsp;&nbsp;//&nbsp;&nbsp; PLAIN-ENGLISH</p>
+            <h1 class="text-4xl md:text-5xl font-black text-white leading-tight">LOOPER: The Deterministic Prioritization OS</h1>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
+            <div>
+                <h2 class="section-title text-sm mb-3">THE PROBLEM</h2>
+                <p class="text-lg leading-relaxed">Home Lending's front door is an unvetted, unauditable mix of emails and hallway conversations. Prioritization is driven by meeting charisma, not math. We build the loudest idea, not the best one.</p>
+            </div>
+            <div>
+                <h2 class="section-title text-sm mb-3">THE SOLUTION</h2>
+                <p class="text-lg leading-relaxed">A single, governed system that transforms raw ideas into a ranked, capacity-allocated, and audit-ready build queue, running on mathematical rigor and cryptographic receipts.</p>
+            </div>
+        </section>
+
+        <div class="mb-16">
+            <h2 class="section-title text-sm mb-8 text-center">HOW IT WORKS</h2>
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-4">
+                
+                <!-- Step 1: Intake -->
+                <div class="flow-step w-full md:w-1/5">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    <h3 class="font-bold text-white">1. INTAKE</h3>
+                    <p class="text-xs text-muted">A guided wizard enforces structure on new ideas.</p>
+                </div>
+
+                <div class="text-gray-500 mx-2">→</div>
+                
+                <!-- Step 2: Gate -->
+                <div class="flow-step w-full md:w-1/5 relative">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <h3 class="font-bold text-white">2. THE GATE</h3>
+                    <p class="text-xs text-muted"><code>CADMUS</code> gate validates the submission. A claim without a source is <strong class="refused-text">REFUSED</strong>.</p>
+                    <div class="absolute left-1/2 -bottom-12 transform -translate-x-1/2">
+                        <svg class="w-4 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                        <span class="text-xs font-mono refused-text absolute -bottom-4 -right-10">REFUSED</span>
+                    </div>
+                </div>
+                
+                <div class="text-gray-500 mx-2">→</div>
+
+                <!-- Step 3: Engine -->
+                <div class="flow-step w-full md:w-1/5">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    <h3 class="font-bold text-white">3. AGILITY ENGINE</h3>
+                    <p class="text-xs text-muted">A deterministic algorithm scores the idea based on RICE + 3-Year NPV.</p>
+                </div>
+
+                <div class="text-gray-500 mx-2">→</div>
+
+                <!-- Step 4: Board -->
+                <div class="flow-step w-full md:w-1/5">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <h3 class="font-bold text-white">4. THE BOARD</h3>
+                    <p class="text-xs text-muted">Idea lands on a ranked, capacity-allocated queue (Funded/Benched).</p>
+                </div>
+            </div>
+             <div class="flex items-center justify-center mt-24">
+                <div class="text-gray-500 mx-2">→</div>
+                <!-- Step 5: Receipt -->
+                <div class="flow-step w-full md:w-1/5">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-accent-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H5v-2H3v-2H1v-4a6 6 0 017.743-5.743z"></path></svg>
+                    <h3 class="font-bold text-white">5. THE RECEIPT</h3>
+                    <p class="text-xs text-muted">The entire process is recorded on an immutable <code>LUNA</code> ledger for a perfect audit trail.</p>
+                </div>
+             </div>
+        </div>
+
+        <div class="mb-12 rounded-lg border border-border p-6 bg-surface mt-24">
+            <h2 class="section-title text-sm mb-4">> THE ALGORITHM (100% DETERMINISTIC)</h2>
+            <div class="font-mono text-xs md:text-sm space-y-4">
+                <p><strong>1. RICE Score:</strong> <code>Score = (Reach * Impact * Delivery_Confidence) / Effort</code></p>
+                <p class="pl-4">- <strong>Impact:</strong> <code>ln(1 + 3_Year_NPV)</code></p>
+                <p><strong>2. 3-Year NPV:</strong> <code>Σ [ (Net_Cash_Flow_t) / (1 + 0.10)^t ]</code> for years t = 1 to 3</p>
+                <p class="pl-4 text-xs">- <strong>Net Cash Flow:</strong> <code>(Revenue * (1-COGS)) + Cost_Savings + (Cost_Avoidance * pAvoid) + (Risk_Reduction * pRisk) + Customer_Impact - Ongoing_TCO</code></p>
+            </div>
+        </div>
+        
+        <div class="mb-12">
+            <h2 class="section-title text-sm mb-3">> THE PAYOFF: GOVERNED AGILITY</h2>
+            <p>We stop building the wrong things. We eliminate duplicate work. We have a mathematically defensible, fully auditable portfolio. The play isn't "do intake better," it's to leapfrog to <strong class="highlight">evidence-enforced portfolio management.</strong></p>
+        </div>
+
+        <hr class="border-t border-border/50 my-10">
+
+        <footer class="text-center">
+            <p class="font-semibold text-white">Leland Jourdan II</p>
+            <p class="text-accent-text">VP Agility Lead/Solutions Architect</p>
+            <p class="text-accent-text">JPMorgan Chase & Co.</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -5,7 +5,7 @@ export type TourStep = {
   title: string;
   body: string;
   /** Auto-run when step appears (after navigation + paint delay). */
-  action?: "fill-refuse" | "submit-intake" | "load-sample" | "submit-intake" | "select-first-funded" | "run-build";
+  action?: "fill-refuse" | "submit-intake" | "load-sample" | "select-first-funded" | "run-build" | "wizard-fill" | "wizard-next" | "wizard-submit";
   actionDelayMs?: number;
   waitForSelector?: string;
   /** Auto-advance after action completes (watch mode). */
@@ -25,6 +25,50 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Welcome to LOOPER",
     body: "LOOPER is like a fair judge for work ideas. People submit requests, LOOPER checks if they're complete, scores them with math (not vibes), and puts them in order. Every decision leaves a trail you can look up later — like showing your work on a math test.",
     dwellMs: 4500,
+  },
+  {
+    id: "wizard-start",
+    path: "/intake/guided",
+    selector: "[data-tour=wizard-step-1]",
+    title: "The Guided Intake",
+    body: "Instead of a massive blank form, the front door is conversational but mathematically rigorous. We ask for the idea first.",
+    action: "wizard-fill",
+    actionDelayMs: 1400,
+    waitForSelector: "[data-tour=wizard-step-1]",
+    dwellMs: 5000,
+  },
+  {
+    id: "wizard-value",
+    path: "/intake/guided",
+    selector: "[data-tour=wizard-step-2]",
+    title: "Value Classification",
+    body: "Users must classify the intent of their idea. We'll pick 'Risk-Compliance' and mark it as a Regulatory Mandate, which automatically pins it to the NOW phase in the portfolio.",
+    action: "wizard-next",
+    actionDelayMs: 1200,
+    waitForSelector: "[data-tour=wizard-step-2]",
+    dwellMs: 4000,
+  },
+  {
+    id: "wizard-math",
+    path: "/intake/guided",
+    selector: "[data-tour=wizard-step-3]",
+    title: "The Hard Math",
+    body: "We force them to quantify the Reach and the Effort. No vague 'High/Medium/Low' guesses. Real units, real team-weeks.",
+    action: "wizard-next",
+    actionDelayMs: 1200,
+    waitForSelector: "[data-tour=wizard-step-3]",
+    dwellMs: 4000,
+  },
+  {
+    id: "wizard-receipts",
+    path: "/intake/guided",
+    selector: "[data-tour=wizard-step-4]",
+    title: "The Receipts",
+    body: "This is the kill-screen. Notice how the submit button is greyed out. If you claim it saves money, you must provide the source for that math. CADMUS blocks the gate until evidence is provided.",
+    action: "wizard-submit",
+    actionDelayMs: 3000,
+    waitForSelector: "[data-tour=wizard-step-4]",
+    dwellMs: 5500,
   },
   {
     id: "looper-header",

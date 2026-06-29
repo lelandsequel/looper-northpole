@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPMC // Home Lending // Deterministic Prioritization OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0c12;
+            color: #c7c4d5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .font-mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        .grid-bg {
+            background-image:
+                linear-gradient(to right, rgba(48, 45, 66, 0.4) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(48, 45, 66, 0.4) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        h1 { font-family: 'Inter', sans-serif; font-weight: 900; letter-spacing: -0.05em; }
+        h2 { font-family: 'Inter', sans-serif; font-weight: 700; }
+        .section-title {
+            font-family: 'IBM Plex Mono', monospace;
+            color: #8c88a8;
+            font-weight: 600;
+        }
+        .highlight { color: #ebe9f7; }
+        .accent-text { color: #a9a3d4; }
+        code {
+            background-color: rgba(76, 71, 107, 0.3);
+            color: #c7c4d5;
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .status-pill {
+            background-color: rgba(76, 71, 107, 0.3);
+            border: 1px solid rgba(140, 136, 168, 0.3);
+            border-radius: 9999px;
+            padding: 6px 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #58d8a7;
+        }
+        .comparison-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid rgba(76, 71, 107, 0.5);
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .comparison-table th {
+            background-color: #211e2f;
+            color: #ebe9f7;
+            font-weight: 600;
+        }
+        .how-it-works-box {
+            border: 1px solid #302d42;
+            border-radius: 12px;
+            padding: 24px;
+            background: linear-gradient(145deg, rgba(33, 30, 47, 0.8), rgba(24, 22, 34, 0.8));
+            position: relative;
+            overflow: hidden;
+        }
+        .how-it-works-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(169, 163, 212, 0.3), transparent);
+        }
+        .how-it-works-number {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.8rem;
+            color: #8c88a8;
+        }
+    </style>
+</head>
+<body class="grid-bg">
+    <div class="max-w-4xl mx-auto p-8 md:p-12">
+        <header class="mb-10 text-center">
+            <p class="font-mono text-xs tracking-widest text-accent-text mb-4">JPMORGAN CHASE &nbsp;&nbsp;//&nbsp;&nbsp; HOME LENDING TECHNOLOGY &nbsp;&nbsp;//&nbsp;&nbsp; PLAIN-ENGLISH EDITION</p>
+            <h1 class="text-5xl md:text-6xl font-black text-white leading-none tracking-tighter">Deterministic Prioritization OS</h1>
+        </header>
+
+        <section class="mb-12">
+            <p class="text-lg leading-relaxed"><strong class="highlight">The Problem:</strong> Home Lending's front door is an unvetted, unauditable mix of emails, Jira epics, and hallway conversations. Prioritization is driven by meeting charisma, not math. We spend millions on projects with no traceable record of why they were chosen over others.</p>
+            <p class="text-lg leading-relaxed mt-4"><strong class="highlight">The Fix:</strong> A governed, deterministic system that transforms raw ideas into a ranked, capacity-allocated, and audit-ready build queue. It runs on the same principles as our Governed Agentic SDLC: structured specs, proof-bearing receipts, and refusal when we're not sure.</p>
+        </section>
+
+        <div class="status-pill mb-12">
+            <div class="status-dot"></div>
+            <span>STATUS: <strong>PILOT-READY</strong></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div>
+                <h2 class="section-title text-sm mb-3">> WHAT THIS IS</h2>
+                <p>A plan to make Home Lending's intake <strong class="highlight">portfolio-ready the right way</strong> — not just another project tracker. <code>CADMUS</code> turns messy asks into governed initiatives. The <code>AGILITY Engine</code> attaches a deterministic score and cryptographic receipt. Funded initiatives move to a build queue where <code>NORTHPOLE</code> orchestrates spec and delivery.</p>
+            </div>
+            <div>
+                <h2 class="section-title text-sm mb-3">> THE PROBLEM</h2>
+                <p>Current intake creates <strong class="highlight">unauditable backlogs</strong>. Vague Jira epics make planning slow and developer execution dangerous. We have no mathematical basis for our portfolio decisions. We lack the gate machinery to enforce rigor upfront.</p>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h2 class="section-title text-sm mb-3">> WHAT THE ENTERPRISE HAS - AND WHAT WE DON'T</h2>
+            <p class="mb-6">The firm is buying enterprise intake tools that organize the chaos but don't solve the root problem: lack of deterministic scoring and evidence-enforced gates. They bought the filing cabinet. We built the judge.</p>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>CONVENTIONAL INTAKE (FIRM STANDARD)</th>
+                        <th>LOOPER + NORTHPOLE (US)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Intake Process</strong></td>
+                        <td>Manual forms, free text</td>
+                        <td>Guided, structured wizard</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Scoring</strong></td>
+                        <td>Subjective (Hi/Med/Lo), meeting-driven</td>
+                        <td>Deterministic (RICE + 3Y NPV)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Audit Receipts</strong></td>
+                        <td>Not evidenced</td>
+                        <td>sha256 hash-chained ledger (LUNA)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>When Unsure</strong></td>
+                        <td>Human review after intake</td>
+                        <td><strong class="text-red-400">REFUSED</strong> at intake (CADMUS Gate)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div>
+                <h2 class="section-title text-sm mb-3">> OUR SECRET WEAPON · THE AGILITY ENGINE</h2>
+                <p>Turns messy initiatives into <strong class="highlight">mathematically-scored portfolio candidates</strong> via <code>INTAKE</code> → <code>CADMUS</code> → <code>SCORE</code> → <code>ALLOCATE</code> → <code>QUEUE</code>. The score is pure math, no LLM.</p>
+            </div>
+            <div>
+                <h2 class="section-title text-sm mb-3">> OUR SECRET WEAPON · DETERMINISM</h2>
+                <p><strong class="highlight">Same question → same score → same rank.</strong> Missing evidence? <strong class="text-red-400">REFUSED</strong> — never guessed. Bank-grade artifacts, not "the vibe in the room."</p>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h2 class="section-title text-sm mb-6 text-center">> HOW IT WORKS TOGETHER</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="how-it-works-box">
+                    <span class="how-it-works-number">01</span>
+                    <h3 class="font-bold text-white mb-2">INTAKE</h3>
+                    <p class="text-sm">User submits idea via a guided, conversational wizard that enforces structure.</p>
+                </div>
+                <div class="how-it-works-box">
+                    <span class="how-it-works-number">02</span>
+                    <h3 class="font-bold text-white mb-2">CADMUS + AGILITY</h3>
+                    <p class="text-sm"><code>CADMUS</code> gate refuses incomplete claims. The <code>AGILITY</code> engine runs the scoring algorithm.</p>
+                </div>
+                <div class="how-it-works-box">
+                    <span class="how-it-works-number">03</span>
+                    <h3 class="font-bold text-white mb-2">LOOPER</h3>
+                    <p class="text-sm">Idea lands on the board in a ranked, capacity-allocated queue (Funded/Benched).</p>
+                </div>
+                <div class="how-it-works-box">
+                    <span class="how-it-works-number">04</span>
+                    <h3 class="font-bold text-white mb-2">NORTHPOLE</h3>
+                    <p class="text-sm">Top-ranked items are fed to the build pipeline for spec generation and delivery.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-12 rounded-lg border border-border p-6 bg-surface">
+            <h2 class="section-title text-sm mb-4">> THE SCORING ALGORITHM (100% DETERMINISTIC)</h2>
+            <p class="text-sm text-muted mb-6">The priority score is a modified RICE framework where "Impact" is the log-scaled 3-Year Net Present Value (NPV).</p>
+            <div class="font-mono text-sm space-y-4">
+                <p><strong>1. RICE Score:</strong> <code>Score = (Reach * Impact * Delivery_Confidence) / Effort</code></p>
+                <p class="pl-4">- <strong>Impact:</strong> <code>ln(1 + 3_Year_NPV)</code></p>
+                <p><strong>2. 3-Year NPV:</strong> <code>Σ [ (Net_Cash_Flow_t) / (1 + 0.10)^t ]</code> for years t = 1 to 3</p>
+                <p class="pl-4">- <strong>Net Cash Flow:</strong> <code>(Revenue * (1-COGS)) + Cost_Savings + (Cost_Avoidance * pAvoid) + ...</code></p>
+            </div>
+            <p class="text-xs text-muted mt-6">All financial inputs to the NPV calculation are required to have a cited source to pass the CADMUS intake gate.</p>
+        </div>
+        
+        <div class="mb-12">
+            <h2 class="section-title text-sm mb-3">> WHY THIS MATTERS</h2>
+            <p>Other divisions are buying tools to manage their backlogs. We can <strong class="highlight">eliminate bad backlog items before they're even created.</strong> This isn't about being faster at the wrong work; it's about being mathematically certain we're only doing the right work. The play isn't "do intake better," it's to leapfrog to <strong class="highlight">governed, evidence-enforced portfolio management.</strong></p>
+            <p class="mt-4"><strong class="highlight">Measure:</strong> lead time from idea to build-ready spec, receipt coverage, capacity-to-value alignment. <strong class="text-red-400">Not:</strong> number of Jira tickets closed.</p>
+        </div>
+
+        <hr class="border-t border-border my-10">
+
+        <footer class="text-center">
+            <p class="font-semibold text-white">Leland Jourdan II</p>
+            <p class="text-accent-text">VP Agility Lead/Solutions Architect</p>
+            <p class="text-accent-text">JPMorgan Chase & Co.</p>
+            <p class="font-mono text-xs text-muted mt-6">*Companion artifact: LOOPER + NORTHPOLE Live Demo (v1.0)*</p>
+        </footer>
+    </div>
+</body>
+</html>
